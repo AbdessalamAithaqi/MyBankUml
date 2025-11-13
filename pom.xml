@@ -6,8 +6,8 @@
     
     <modelVersion>4.0.0</modelVersion>
     
-    <groupId>BankUml</groupId>
-    <artifactId>BankUml</artifactId>
+    <groupId>MyBankUml</groupId>
+    <artifactId>MyBankUml</artifactId>
     <version>1.0</version>
     
     <dependencies>
