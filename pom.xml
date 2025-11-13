@@ -10,6 +10,11 @@
     <artifactId>MyBankUml</artifactId>
     <version>1.0</version>
     
+    <build>
+        <!-- Tell Maven that source code lives in /bank -->
+        <sourceDirectory>bank</sourceDirectory>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>

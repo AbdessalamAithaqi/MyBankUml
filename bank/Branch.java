@@ -1,5 +1,3 @@
-package bank;
-
 import lombok.Getter;
 
 @Getter

@@ -1,5 +1,3 @@
-package bank;
-
 public class Card extends Account {
     public Card(Customer customer) {
         super(customer);
