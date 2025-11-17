@@ -1,0 +1,82 @@
+package GUI;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class CustomerLogin extends JPanel {
+
+    private JTextField username;
+    private JPasswordField password;
+
+    private JButton login;
+    private JButton back;
+
+    public CustomerLogin(){
+
+        setLayout(new BorderLayout());
+        setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
+
+        JLabel title = new JLabel("Customer Login", SwingConstants.CENTER);
+        title.setFont(new Font("SansSerif", Font.BOLD, 40));
+        add(title, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+
+        centerPanel.add(Box.createVerticalStrut(20));
+
+        JLabel usernameLabel = new JLabel("Username:", SwingConstants.CENTER);
+        usernameLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        usernameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(usernameLabel);
+
+        username = new JTextField();
+        username.setPreferredSize(new Dimension(250, 60));
+        username.setMaximumSize(new Dimension(250,60));
+        username.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(username);
+
+        centerPanel.add(Box.createVerticalStrut(10));
+
+         JLabel passwordLabel = new JLabel("Password:", SwingConstants.CENTER);
+        passwordLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(passwordLabel);
+
+        password = new JPasswordField();
+        password.setPreferredSize(new Dimension(250, 60));
+        password.setMaximumSize(new Dimension(250,60));
+        password.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(password);
+
+        centerPanel.add(Box.createVerticalStrut(10));
+        
+        login = createButton("Login");
+        centerPanel.add(login);
+
+        add(centerPanel, BorderLayout.CENTER);
+
+
+
+        back = createButton("Back");
+        
+        add(back, BorderLayout.SOUTH);
+
+    }
+
+    private JButton createButton(String text){ // Temporary method for button that don't exist yet
+        JButton btn = new JButton(text);
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        btn.setPreferredSize(new Dimension(250, 60));
+        btn.setMaximumSize(new Dimension(250, 60));
+        btn.setHorizontalAlignment(SwingConstants.CENTER);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        return btn;
+    }
+
+    public JButton getBackButton(){
+        return back;
+    }
+}

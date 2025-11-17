@@ -1,18 +1,30 @@
 package GUI;
 
 import java.awt.CardLayout;
-import java.awt.Color;
 
 import javax.swing.*;
 
 public class CardPanel extends JPanel{
 
-    LoginRegister lr = new LoginRegister();
+    private CardLayout cardLayout;
+
+    private LoginRegister loginRegister = new LoginRegister();
+    private CustomerLogin customerLogin = new CustomerLogin();
 
     public CardPanel() {
-        this.setBackground(Color.gray);
-        this.setLayout(new CardLayout());   
+        cardLayout = new CardLayout();
+        setLayout(cardLayout);   
 
-        this.add(lr);
+        add(loginRegister, "HOME");
+        add(customerLogin, "CUSTOMER_LOGIN"); 
+
+        loginRegister.getCustomerLogin().addActionListener(e -> {
+            cardLayout.show(this, "CUSTOMER_LOGIN");
+        });
+
+        customerLogin.getBackButton().addActionListener(e -> {
+            cardLayout.show(this, "HOME");
+        });
+
     }
 }

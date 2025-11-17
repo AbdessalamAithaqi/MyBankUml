@@ -149,5 +149,13 @@ public class LoginRegister extends JPanel {
         revalidate();
     }
     
+/*
+ * GETTERS
+ */
+
+ public JButton getCustomerLogin(){
+    return customerLogin;
+ }
+
 }
 
