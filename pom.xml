@@ -12,7 +12,7 @@
     
     <build>
         <!-- Tell Maven that source code lives in /bank -->
-        <sourceDirectory>bank</sourceDirectory>
+        <sourceDirectory>src</sourceDirectory>
     </build>
 
     <dependencies>
