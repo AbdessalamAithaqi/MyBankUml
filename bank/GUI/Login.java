@@ -3,7 +3,7 @@ package GUI;
 import javax.swing.*;
 import java.awt.*;
 
-public class CustomerLogin extends JPanel {
+public class Login extends JPanel {
 
     private JTextField username;
     private JPasswordField password;
@@ -11,12 +11,12 @@ public class CustomerLogin extends JPanel {
     private JButton login;
     private JButton back;
 
-    public CustomerLogin(){
+    public Login(String type){
 
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
 
-        JLabel title = new JLabel("Customer Login", SwingConstants.CENTER);
+        JLabel title = new JLabel(type + " Login", SwingConstants.CENTER);
         title.setFont(new Font("SansSerif", Font.BOLD, 40));
         add(title, BorderLayout.NORTH);
 

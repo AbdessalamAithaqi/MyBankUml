@@ -160,5 +160,9 @@ public class LoginRegister extends JPanel {
  public JButton getTellerLogin(){
     return tellerLogin;
  }
+
+ public JButton getAdminButton(){
+    return admin;
+ }
 }
 
