@@ -1,3 +1,4 @@
+package Models;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -6,6 +7,10 @@ import lombok.Setter;
 public class Customer {
 
     private String name;
+    private int ID;
+    private Check check;
+    private Saving saving;
+    private Card card;
 
     // Constructor
     public Customer(String name) {

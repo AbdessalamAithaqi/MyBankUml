@@ -1,3 +1,4 @@
+package Models;
 import lombok.Getter;
 
 import java.util.ArrayList;

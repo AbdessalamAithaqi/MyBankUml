@@ -4,6 +4,9 @@ import java.awt.CardLayout;
 
 import javax.swing.*;
 
+import GUI.Customer.CustomerCardPanel;
+import Models.Customer;
+
 public class CardPanel extends JPanel{
 
     private CardLayout cardLayout;
@@ -12,6 +15,7 @@ public class CardPanel extends JPanel{
     private Login customerLogin;
     private Login tellerLogin;
     private Login adminLogin;
+    private CustomerCardPanel customerCardPanel;
 
     public CardPanel() {
         cardLayout = new CardLayout();
@@ -52,5 +56,34 @@ public class CardPanel extends JPanel{
             cardLayout.show(this, "HOME");
         });
 
+        // Temporary while database and controllers are not done
+        customerLogin.getLoginButton().addActionListener(e -> {
+
+            //this will contain auth and fetching the account 
+            // this is just for testing the GUI 
+
+
+            customerCardPanel = new CustomerCardPanel(new Customer("Ulysse"));
+            add(customerCardPanel, "LOGGED_IN");
+
+            
+            customerCardPanel.getCustomerHome().getLogoutButton().addActionListener(ev -> {
+                if (customerCardPanel != null) {
+                    remove(customerCardPanel);
+                }
+                // 2. Clear the reference so GC can clean everything
+                customerCardPanel = null;
+                // 3. Go back to HOME screen
+                cardLayout.show(this, "HOME");
+                
+                // 4. Revalidate layout to avoid empty areas / redraw issues
+                revalidate();
+            });
+            
+            cardLayout.show(this, "LOGGED_IN");
+
+        });
+
+        
     }
 }

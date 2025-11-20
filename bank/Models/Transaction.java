@@ -1,3 +1,4 @@
+package Models;
 public class Transaction {
     public void pay() {
         System.out.println("Payment transaction is done.");

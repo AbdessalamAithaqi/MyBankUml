@@ -38,7 +38,7 @@ public class Login extends JPanel {
 
         centerPanel.add(Box.createVerticalStrut(10));
 
-         JLabel passwordLabel = new JLabel("Password:", SwingConstants.CENTER);
+        JLabel passwordLabel = new JLabel("Password:", SwingConstants.CENTER);
         passwordLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
         passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(passwordLabel);
@@ -78,5 +78,9 @@ public class Login extends JPanel {
 
     public JButton getBackButton(){
         return back;
+    }
+
+    public JButton getLoginButton(){
+        return login;
     }
 }
