@@ -1,7 +1,18 @@
 package Models;
+
+import lombok.Getter;
+
+@Getter
 public class Transaction {
-    public void pay() {
-        System.out.println("Payment transaction is done.");
+    
+    private int amount;
+    private String senderID;
+    private String receiverID;
+
+    public Transaction(int amount, String senderID, String receiverID){
+        this.amount = amount;
+        this.senderID = senderID;
+        this.receiverID = receiverID;
     }
 
     public void receipt() {

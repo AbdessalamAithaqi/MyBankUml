@@ -25,15 +25,13 @@ public class CustomerCardPanel extends JPanel{
 
         //this.customer = customer;
         customerHome = new CustomerHome(customer);
-        checkTransactions = new CustomerTransactions("Check");
-        savingTransactions = new CustomerTransactions("Saving");
+        
+       
         card = new CustomerCard();
         transactionPanel = new CustomerMakeTransaction();
         transferPanel = new CustomerMakeTransfer();
 
-        add(customerHome, "Home");
-        add(checkTransactions, "Check_Transactions");
-        add(savingTransactions, "Saving_Transactions");
+        add(customerHome, "Home");   
         add(card, "Card");
         add(transactionPanel, "Transaction");
         add(transferPanel, "Transfer");
@@ -41,15 +39,55 @@ public class CustomerCardPanel extends JPanel{
         customerHome.getCheckPanel().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e){
+                checkTransactions = new CustomerTransactions("Check");
+                add(checkTransactions, "Check_Transactions");
                 cardLayout.show(CustomerCardPanel.this, "Check_Transactions");
+
+                checkTransactions.getBackButton().addActionListener(ev -> {
+                    cardLayout.show(CustomerCardPanel.this, "Home");
+                });
             }
         });
 
         customerHome.getSavingPanel().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e){
+                savingTransactions = new CustomerTransactions("Saving");
+                add(savingTransactions, "Saving_Transactions");
                 cardLayout.show(CustomerCardPanel.this, "Saving_Transactions");
+
+                savingTransactions.getBackButton().addActionListener(ev -> {
+                    cardLayout.show(CustomerCardPanel.this, "Home");
+                });
             }
+        });
+
+        customerHome.getMakeTransferButton().addActionListener(e -> {
+            cardLayout.show(this, "Transfer");
+        });
+        
+        customerHome.getMakeTransactionButton().addActionListener(e -> {
+            cardLayout.show(this, "Transaction");
+        });
+
+        customerHome.getShowCardButton().addActionListener(e -> {
+            cardLayout.show(this, "Card");
+        });
+
+        transferPanel.getBackButton().addActionListener(e -> {
+            cardLayout.show(this, "Home");
+        });
+
+        transactionPanel.getBackButton().addActionListener(e -> {
+            cardLayout.show(this, "Home");
+        });
+
+        card.getBackButton().addActionListener(e -> {
+            cardLayout.show(this, "Home");
+        });
+
+        card.getMakeTransactionButton().addActionListener(e -> {
+            cardLayout.show(this, "Transaction");
         });
 
     }

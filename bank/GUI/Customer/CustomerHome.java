@@ -2,16 +2,18 @@ package GUI.Customer;
 
 import javax.swing.*;
 
+import GUI.Buttons.defaultButton;
+
 import java.awt.*;
 
 import Models.Customer;
 
 public class CustomerHome extends JPanel{
 
-    private JButton logout;
-    private JButton makeTransaction;
-    private JButton makeTransfer;
-    private JButton showCard;
+    private defaultButton logout;
+    private defaultButton makeTransaction;
+    private defaultButton makeTransfer;
+    private defaultButton showCard;
     private JPanel checkPanel;
     private JPanel savingPanel;
 
@@ -21,10 +23,10 @@ public class CustomerHome extends JPanel{
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
         
-        logout = createButton("LOGOUT");
-        makeTransaction = createButton("Make Transaction");
-        makeTransfer = createButton("Make Transfer");
-        showCard = createButton("Card");
+        logout = new defaultButton("LOGOUT");
+        makeTransaction = new defaultButton("Make Transaction");
+        makeTransfer = new defaultButton("Make Transfer");
+        showCard = new defaultButton("Card");
 
         //TOP PANEL
         JPanel topPanel = new JPanel();
@@ -99,17 +101,6 @@ public class CustomerHome extends JPanel{
         return panel;
     }
 
-    private JButton createButton(String text){ // Temporary method for button that don't exist yet
-        JButton btn = new JButton(text);
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btn.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        btn.setPreferredSize(new Dimension(250, 60));
-        btn.setMaximumSize(new Dimension(250, 60));
-        btn.setHorizontalAlignment(SwingConstants.CENTER);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        return btn;
-    }
 
     public JButton getLogoutButton(){
         return logout;
@@ -122,4 +113,18 @@ public class CustomerHome extends JPanel{
     public JPanel getSavingPanel(){
         return savingPanel;
     }
+
+    public defaultButton getMakeTransferButton(){
+        return makeTransfer;
+    }
+
+    public defaultButton getMakeTransactionButton(){
+        return makeTransaction;
+    }
+
+    public defaultButton getShowCardButton(){
+        return showCard;
+    }
 }
+
+
