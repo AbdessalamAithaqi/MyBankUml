@@ -67,6 +67,7 @@ public class CustomerHome extends JPanel{
         
         //BOTTOM PANEL
         JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new GridLayout(1,3));
         bottomPanel.add(makeTransaction);
         bottomPanel.add(makeTransfer);
         bottomPanel.add(showCard);

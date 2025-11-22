@@ -5,9 +5,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import java.awt.*;
+import java.awt.event.*;
 
 
 import GUI.Buttons.defaultButton;
+import GUI.Customer.CreditCard.backCreditCard;
+import GUI.Customer.CreditCard.frontCreditCard;
 
 public class CustomerCard extends JPanel{
     
@@ -40,28 +43,73 @@ public class CustomerCard extends JPanel{
 
     //NOT DONE
     private JPanel makeCenterPanel(){
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(1,2));
+        JPanel panel = new JPanel(new GridBagLayout());
+    panel.setOpaque(false); // if you want the parent background to show
 
-        JLabel cardNum = new JLabel("adfasdfasdf");
-        JLabel cardHolder = new JLabel("Ulysse");
-        JLabel expDate = new JLabel("adfasfdas");
-        JLabel CCV = new JLabel("123");
+    frontCreditCard front = new frontCreditCard("MyBankUML", "1111 2222 3333 4444", "Ulysse", "01/28");
+    backCreditCard back  = new backCreditCard("123");
 
-        JPanel front = new JPanel();
-        front.setLayout(new GridBagLayout());
-        front.add(cardNum);
-        front.add(cardHolder);
-        front.add(expDate);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridy = 0;
+    gbc.weighty = 1.0;
+    gbc.anchor = GridBagConstraints.CENTER;
 
-        JPanel back = new JPanel();
-        back.add(CCV);
+    // Left card
+    gbc.gridx = 0;
+    gbc.weightx = 0.5;
+    gbc.insets = new Insets(0, 0, 0, 20); // right gap
+    panel.add(front, gbc);
 
-        panel.add(front);
-        panel.add(back);
+    // Right card
+    gbc.gridx = 1;
+    gbc.weightx = 0.5;
+    gbc.insets = new Insets(0, 20, 0, 0); // left gap (optional)
+    panel.add(back, gbc);
 
-        return panel;
+    // === Make them scale with window size while keeping aspect ratio ===
+    addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+            resizeCards(panel, front, back);
+        }
+    });
+
+    return panel;
     }
+
+    private void resizeCards(JPanel centerPanel, frontCreditCard front, backCreditCard back) {
+    // Base card size (must match your card's original design)
+    int baseW = 360;
+    int baseH = 210;
+    int gap   = 40; // total horizontal gap between cards
+
+    int availW = centerPanel.getWidth();
+    int availH = centerPanel.getHeight();
+
+    if (availW <= 0 || availH <= 0) return;
+
+    // We have two cards side by side: total base width = 2 * baseW + gap
+    double scaleX = (double) availW / (2 * baseW + gap);
+    double scaleY = (double) availH / baseH;
+
+    double scale = Math.min(scaleX, scaleY); // keep aspect ratio
+
+    // Avoid absurdly tiny or negative sizes
+    if (scale <= 0) scale = 0.1;
+
+    int cardW = (int) (baseW * scale);
+    int cardH = (int) (baseH * scale);
+
+    Dimension cardSize = new Dimension(cardW, cardH);
+
+    front.setPreferredSize(cardSize);
+    back.setPreferredSize(cardSize);
+
+    // Let layout managers recalc based on new preferred sizes
+    centerPanel.revalidate();
+    centerPanel.repaint();
+    }
+
 
 
     public defaultButton getBackButton(){

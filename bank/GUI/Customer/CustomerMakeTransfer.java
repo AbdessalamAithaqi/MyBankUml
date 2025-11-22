@@ -78,7 +78,7 @@ public class CustomerMakeTransfer extends JPanel{
         panel.add(radioButtons);
         panel.add(Box.createVerticalStrut(10));
         panel.add(textFieldPanel);
-        panel.add(Box.createVerticalStrut(10));
+        panel.add(Box.createVerticalStrut(20));
         panel.add(transfer);
         return panel;
     }

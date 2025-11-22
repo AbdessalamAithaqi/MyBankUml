@@ -5,6 +5,7 @@ import java.awt.CardLayout;
 import javax.swing.*;
 
 import GUI.Customer.CustomerCardPanel;
+import GUI.Teller.TellerPanel;
 import Models.Customer;
 
 public class CardPanel extends JPanel{
@@ -16,6 +17,7 @@ public class CardPanel extends JPanel{
     private Login tellerLogin;
     private Login adminLogin;
     private CustomerCardPanel customerCardPanel;
+    private TellerPanel tellerPanel;
 
     public CardPanel() {
         cardLayout = new CardLayout();
@@ -52,17 +54,25 @@ public class CardPanel extends JPanel{
             cardLayout.show(this, "HOME");
         });
 
+        tellerLogin.getLoginButton().addActionListener(e -> {
+            // Temporary while database and controllers ar not done
+            //Auth will be added here.
+
+            tellerPanel = new TellerPanel();
+            add(tellerPanel, "LOGGED_IN");
+
+            cardLayout.show(this, "LOGGED_IN");
+        });
+
         adminLogin.getBackButton().addActionListener(e -> {
             cardLayout.show(this, "HOME");
         });
 
-        // Temporary while database and controllers are not done
         customerLogin.getLoginButton().addActionListener(e -> {
+        // Temporary while database and controllers are not done
 
             //this will contain auth and fetching the account 
             // this is just for testing the GUI 
-
-
             customerCardPanel = new CustomerCardPanel(new Customer("Ulysse"));
             add(customerCardPanel, "LOGGED_IN");
 
@@ -84,6 +94,6 @@ public class CardPanel extends JPanel{
 
         });
 
-        
+
     }
 }

@@ -25,8 +25,9 @@ public class CustomerTransactions extends JPanel{
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
-        JLabel title = new JLabel(type);
-        title.setFont(new Font("SansSerif", Font.BOLD, 20));
+
+        JLabel title = new JLabel(type, SwingConstants.CENTER);
+        title.setFont(new Font("SansSerif", Font.BOLD, 40));
         title.setAlignmentX(CENTER_ALIGNMENT);
 
         
