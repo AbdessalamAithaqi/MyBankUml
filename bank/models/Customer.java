@@ -1,4 +1,4 @@
-package models.bank;
+package bank.models;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package models.bank;
+package bank.models;
 
 public class Card extends Account {
     public Card(Customer customer) {

@@ -1,5 +1,7 @@
 package bank;
 
+import bank.models.*;
+
 public class Main {
     public static void main(String[] args) {
         // New customer
