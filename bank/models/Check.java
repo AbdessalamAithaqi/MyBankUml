@@ -1,4 +1,4 @@
-package models.bank;
+package bank.models;
 
 public class Check extends Account {
     public Check(Customer customer) {

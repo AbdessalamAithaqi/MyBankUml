@@ -1,4 +1,4 @@
-package models.bank;
+package bank.models;
 
 public class Transaction {
     public void pay() {

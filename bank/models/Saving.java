@@ -1,4 +1,4 @@
-package models.bank;
+package bank.models;
 
 public class Saving extends Account {
     public Saving(Customer customer) {
