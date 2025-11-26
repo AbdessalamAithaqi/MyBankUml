@@ -1,6 +1,6 @@
 # 🏦 BankUml: Banking System Simulation
 
-Welcome to **BankUml**, a Java-based banking application designed to simulate core banking operations such as account management, transactions, and receipts.  
+Welcome to **BankUml**, a Java-based banking application designed to simulate core banking operations such as account management, transactions, and receipts.
 
 This project demonstrates the use of Object-Oriented Programming (OOP) principles, including **Inheritance**, **Encapsulation**, **Abstraction**, and **Polymorphism**, strictly following the provided UML diagram.
 
@@ -26,14 +26,14 @@ Make sure you have the following installed:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/M-PERSIC/BankUml.git
+git clone https://github.com/AbdessalamAithaqi/MyBankUml.git
 cd BankUml
 ```
 
 2. Compile the code:
 
 ```bash
-javac -cp "libs/*" bank/*.java 
+javac -cp "libs/*" bank/*.java
 ```
 
 3. Run the program:

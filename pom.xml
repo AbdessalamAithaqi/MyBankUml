@@ -6,10 +6,15 @@
     
     <modelVersion>4.0.0</modelVersion>
     
-    <groupId>BankUml</groupId>
-    <artifactId>BankUml</artifactId>
+    <groupId>MyBankUml</groupId>
+    <artifactId>MyBankUml</artifactId>
     <version>1.0</version>
     
+    <build>
+        <!-- Tell Maven that source code lives in /bank -->
+        <sourceDirectory>src</sourceDirectory>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
