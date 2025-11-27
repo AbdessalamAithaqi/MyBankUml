@@ -155,6 +155,7 @@ public class AdminPanel extends JPanel {
     public String getAddressFilter() { return searchPanel.getAddressFilter(); }
     public String getCreatedAfterFilter() { return searchPanel.getCreatedAfterFilter(); }
     public String getDobAfterFilter() { return searchPanel.getDobAfterFilter(); }
+    public String getBranchFilter() { return searchPanel.getBranchFilter(); }
 
     // User management getters
     public JButton getAddUserButton() { return addUser; }

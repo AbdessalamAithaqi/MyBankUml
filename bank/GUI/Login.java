@@ -19,6 +19,14 @@ public class Login extends JPanel {
     private JTextField addressField;
     private JLabel dobLabel;
     private JTextField dobField;
+    private JLabel ssnLabel;
+    private JTextField ssnField;
+    private JLabel phoneLabel;
+    private JTextField phoneField;
+    private JLabel branchLabel;
+    private JTextField branchField;
+    private JLabel emailLabel;
+    private JTextField emailField;
 
     public Login(String type){
 
@@ -106,6 +114,50 @@ public class Login extends JPanel {
         dobField.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(dobLabel);
         centerPanel.add(dobField);
+        centerPanel.add(Box.createVerticalStrut(10));
+
+        ssnLabel = new JLabel("SSN (masked):", SwingConstants.CENTER);
+        ssnLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        ssnLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ssnField = new JTextField();
+        ssnField.setPreferredSize(new Dimension(250, 40));
+        ssnField.setMaximumSize(new Dimension(250,40));
+        ssnField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(ssnLabel);
+        centerPanel.add(ssnField);
+
+        centerPanel.add(Box.createVerticalStrut(10));
+        phoneLabel = new JLabel("Phone:", SwingConstants.CENTER);
+        phoneLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        phoneLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        phoneField = new JTextField();
+        phoneField.setPreferredSize(new Dimension(250, 40));
+        phoneField.setMaximumSize(new Dimension(250,40));
+        phoneField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        emailLabel = new JLabel("Email:", SwingConstants.CENTER);
+        emailLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        emailField = new JTextField();
+        emailField.setPreferredSize(new Dimension(250, 40));
+        emailField.setMaximumSize(new Dimension(250,40));
+        emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        centerPanel.add(emailLabel);
+        centerPanel.add(emailField);
+        centerPanel.add(Box.createVerticalStrut(10));
+        centerPanel.add(phoneLabel);
+        centerPanel.add(phoneField);
+
+        centerPanel.add(Box.createVerticalStrut(10));
+        branchLabel = new JLabel("Branch ID:", SwingConstants.CENTER);
+        branchLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        branchLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        branchField = new JTextField();
+        branchField.setPreferredSize(new Dimension(250, 40));
+        branchField.setMaximumSize(new Dimension(250,40));
+        branchField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(branchLabel);
+        centerPanel.add(branchField);
         setCustomerDetailsVisible(false);
 
         centerPanel.add(Box.createVerticalStrut(10));
@@ -162,6 +214,10 @@ public class Login extends JPanel {
         birthplaceField.setText("");
         addressField.setText("");
         dobField.setText("");
+        if (ssnField != null) ssnField.setText("");
+        if (phoneField != null) phoneField.setText("");
+        if (branchField != null) branchField.setText("");
+        if (emailField != null) emailField.setText("");
     }
 
     public void setHeading(String text) {
@@ -188,6 +244,14 @@ public class Login extends JPanel {
             addressField.setVisible(visible);
             dobLabel.setVisible(visible);
             dobField.setVisible(visible);
+            ssnLabel.setVisible(visible);
+            ssnField.setVisible(visible);
+            phoneLabel.setVisible(visible);
+            phoneField.setVisible(visible);
+            branchLabel.setVisible(visible);
+            branchField.setVisible(visible);
+            emailLabel.setVisible(visible);
+            emailField.setVisible(visible);
         }
     }
 
@@ -201,5 +265,21 @@ public class Login extends JPanel {
 
     public String getDobInput() {
         return dobField == null ? "" : dobField.getText().trim();
+    }
+
+    public String getSsnInput() {
+        return ssnField == null ? "" : ssnField.getText().trim();
+    }
+
+    public String getPhoneInput() {
+        return phoneField == null ? "" : phoneField.getText().trim();
+    }
+
+    public String getBranchInput() {
+        return branchField == null ? "" : branchField.getText().trim();
+    }
+
+    public String getEmailInput() {
+        return emailField == null ? "" : emailField.getText().trim();
     }
 }

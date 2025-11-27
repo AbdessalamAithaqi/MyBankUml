@@ -72,11 +72,6 @@ public class LoginController {
             cardLayout.show(container, CARD_CUSTOMER_LOGIN);
         });
 
-        loginRegisterView.getCustomerRegister().addActionListener(e -> {
-            customerRegisterView.clearInputs();
-            cardLayout.show(container, CARD_CUSTOMER_REGISTER);
-        });
-
         loginRegisterView.getTellerLogin().addActionListener(e -> {
             tellerLoginView.clearInputs();
             cardLayout.show(container, CARD_TELLER_LOGIN);
@@ -214,19 +209,44 @@ public class LoginController {
         String birthplace = customerRegisterView.getBirthplaceInput();
         String address = customerRegisterView.getAddressInput();
         String dob = customerRegisterView.getDobInput();
+        String ssn = customerRegisterView.getSsnInput();
+        String phone = customerRegisterView.getPhoneInput();
+        String branchStr = customerRegisterView.getBranchInput();
+        String email = customerRegisterView.getEmailInput();
         if (!isValidDob(dob)) {
             showError("Enter a valid date of birth (YYYY-MM-DD), not in the future.");
             return false;
         }
+        if (ssn == null || ssn.isBlank() || !ssn.matches("\\d{9}")) {
+            showError("SSN is required (9 digits).");
+            return false;
+        }
+        if (phone == null || phone.isBlank()) {
+            showError("Phone is required.");
+            return false;
+        }
+        if (email == null || email.isBlank()) {
+            showError("Email is required.");
+            return false;
+        }
+        int branchId;
+        try {
+            branchId = Integer.parseInt(branchStr.trim());
+            if (branchId <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException ex) {
+            showError("Branch ID must be a positive number.");
+            return false;
+        }
         birthplace = birthplace == null ? "" : birthplace.trim();
         address = address == null ? "" : address.trim();
-        if (!db.createCustomerPrimary(username, firstName, lastName, birthplace, dob, address)) {
+        String maskedSsn = "*****" + ssn.substring(ssn.length() - 4);
+        if (!db.createCustomerPrimary(username, firstName, lastName, birthplace, dob, address, maskedSsn, phone, branchId, email)) {
             return false;
         }
         Integer customerId = db.getPrimaryCustomerIdByUsername(username);
         if (customerId != null) {
-            db.createPrimaryAccount(customerId, "CHECK", 0.0, 1);
-            db.createPrimaryAccount(customerId, "SAVING", 0.0, 1);
+            db.createPrimaryAccount(customerId, "CHECK", 0.0, branchId);
+            db.createPrimaryAccount(customerId, "SAVING", 0.0, branchId);
         }
         return true;
     }
