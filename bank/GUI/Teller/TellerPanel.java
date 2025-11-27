@@ -22,6 +22,7 @@ public class TellerPanel extends JPanel{
     private JTextField addressField;
     private JTextField createdAfterField;
     private JTextField dobAfterField;
+    private JTextField branchField;
 
     private JButton searchButton;
 
@@ -56,7 +57,7 @@ public class TellerPanel extends JPanel{
         JLabel title = new JLabel(heading, SwingConstants.LEFT);
         title.setFont(new Font("SansSerif", Font.BOLD, 22));
         if (includeLogout) {
-            logout = new defaultButton("Logout");
+            logout = new defaultButton("Back");
             top.add(title, BorderLayout.WEST);
             top.add(logout, BorderLayout.EAST);
         } else {
@@ -115,6 +116,7 @@ public class TellerPanel extends JPanel{
         addressField = new JTextField(15);
         createdAfterField = new JTextField(10);
         dobAfterField = new JTextField(10);
+        branchField = new JTextField(6);
 
         JPanel customerRow = makeLabeledRow("Last Name:", customerIdField);
         JPanel accountRow  = makeLabeledRow("Account ID:", accountIdField);
@@ -123,6 +125,7 @@ public class TellerPanel extends JPanel{
         JPanel addressRow = makeLabeledRow("Address contains:", addressField);
         JPanel createdRow = makeLabeledRow("User created after (YYYY-MM-DD):", createdAfterField);
         JPanel dobRow = makeLabeledRow("Birthdate after (YYYY-MM-DD):", dobAfterField);
+        JPanel branchRow = makeLabeledRow("Branch ID:", branchField);
 
         // --- Search button ---
         searchButton = new JButton("Search");
@@ -139,6 +142,7 @@ public class TellerPanel extends JPanel{
         panel.add(addressRow);
         panel.add(createdRow);
         panel.add(dobRow);
+        panel.add(branchRow);
         panel.add(Box.createVerticalStrut(8));
         panel.add(buttonRow);
 
@@ -273,6 +277,7 @@ public class TellerPanel extends JPanel{
     public String getAddressFilter() { return addressField.getText().trim(); }
     public String getCreatedAfterFilter() { return createdAfterField.getText().trim(); }
     public String getDobAfterFilter() { return dobAfterField.getText().trim(); }
+    public String getBranchFilter() { return branchField.getText().trim(); }
 
     // Call this from the controller with formatted strings per account
     public void showAccounts(List<String> accountLines) {

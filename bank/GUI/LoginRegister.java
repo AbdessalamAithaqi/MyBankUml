@@ -10,7 +10,6 @@ import bank.GUI.Buttons.*;
 public class LoginRegister extends JPanel {
 
     private JButton customerLogin;
-    private JButton customerRegister;
     private JButton tellerLogin;
     private JButton admin;
 
@@ -55,9 +54,8 @@ public class LoginRegister extends JPanel {
  * The following method create the different panels that make up the loginRegister panel
  */
 
-    private JPanel createCustomerSection(){ // Creates the panel with customer login and register
+    private JPanel createCustomerSection(){ // Customer login only
         JPanel section = new JPanel();
-        //section.setBackground(Color.GREEN);
         section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
         section.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -73,13 +71,10 @@ public class LoginRegister extends JPanel {
         });
 
         customerLogin = createButton("Login");
-        customerRegister = createButton("Register");
 
         section.add(title);
         section.add(Box.createVerticalStrut(15));
         section.add(customerLogin);
-        section.add(Box.createVerticalStrut(10));
-        section.add(customerRegister);
 
         return section;
     }
@@ -155,10 +150,6 @@ public class LoginRegister extends JPanel {
 
  public JButton getCustomerLogin(){
     return customerLogin;
- }
-
- public JButton getCustomerRegister(){
-    return customerRegister;
  }
 
  public JButton getTellerLogin(){

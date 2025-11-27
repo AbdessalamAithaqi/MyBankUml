@@ -215,8 +215,9 @@ public class Database {
             // Store bcrypt hash
             String hash = BCrypt.hashpw(password, BCrypt.gensalt());
             pstmt.setString(2, hash);
-            // placeholder email to satisfy NOT NULL/UNIQUE without collecting PII
-            pstmt.setString(3, username + "@placeholder.local");
+            // placeholder email to satisfy NOT NULL/UNIQUE without collecting PII; ensure uniqueness
+            String uniqueEmail = username + "+" + System.currentTimeMillis() + "@placeholder.local";
+            pstmt.setString(3, uniqueEmail);
             pstmt.setString(4, role.toUpperCase());
             pstmt.executeUpdate();
             logAudit(username, "CREATE_USER", "User created with role: " + role);
@@ -386,7 +387,7 @@ public class Database {
      * Filter accounts by optional customer fields.
      */
     public List<PrimaryAccount> getPrimaryAccountsByCustomerFilters(String lastName, String birthplace, String address,
-                                                                    String createdAfter, String dobAfter) {
+                                                                    String createdAfter, String dobAfter, Integer branchId) {
         StringBuilder sb = new StringBuilder(
             "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
             "c.birthplace, c.address, c.date_of_birth, u.created_at " +
@@ -413,6 +414,10 @@ public class Database {
         if (dobAfter != null && !dobAfter.isBlank()) {
             sb.append("AND date(c.date_of_birth) >= date(?) ");
             params.add(dobAfter);
+        }
+        if (branchId != null) {
+            sb.append("AND c.branch_id = ? ");
+            params.add(branchId);
         }
         sb.append("ORDER BY a.account_id");
 
@@ -584,6 +589,21 @@ public class Database {
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error updating user in USER: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updatePrimaryUserEmail(String username, String email) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        String sql = "UPDATE USER SET email = ?, updated_at = datetime('now') WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            pstmt.setString(2, username);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating user email: " + e.getMessage());
             return false;
         }
     }
@@ -775,13 +795,24 @@ public class Database {
      * Create customer with optional details.
      */
     public boolean createCustomerPrimary(String username, String firstName, String lastName, String placeOfBirth, String dateOfBirth, String address) {
+        return createCustomerPrimary(username, firstName, lastName, placeOfBirth, dateOfBirth, address, null, null, 1);
+    }
+
+    /**
+     * Create customer with optional details including ssn, phone, branch.
+     */
+    public boolean createCustomerPrimary(String username, String firstName, String lastName, String placeOfBirth, String dateOfBirth, String address, String ssn, String phone, Integer branchId) {
+        return createCustomerPrimary(username, firstName, lastName, placeOfBirth, dateOfBirth, address, ssn, phone, branchId, null);
+    }
+
+    public boolean createCustomerPrimary(String username, String firstName, String lastName, String placeOfBirth, String dateOfBirth, String address, String ssn, String phone, Integer branchId, String email) {
         Integer userId = getPrimaryUserId(username);
         if (userId == null) {
             return false;
         }
         String dob = (dateOfBirth == null || dateOfBirth.isBlank()) ? "1970-01-01" : dateOfBirth;
-        String sql = "INSERT INTO CUSTOMER (user_id, first_name, last_name, date_of_birth, birthplace, address) " +
-                     "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO CUSTOMER (user_id, first_name, last_name, date_of_birth, birthplace, address, ssn_masked, phone, branch_id) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             pstmt.setString(2, firstName == null ? "" : firstName);
@@ -789,7 +820,13 @@ public class Database {
             pstmt.setString(4, dob);
             pstmt.setString(5, placeOfBirth);
             pstmt.setString(6, address);
+            pstmt.setString(7, ssn);
+            pstmt.setString(8, phone);
+            pstmt.setObject(9, branchId == null ? 1 : branchId);
             pstmt.executeUpdate();
+            if (email != null && !email.isBlank()) {
+                updatePrimaryUserEmail(username, email);
+            }
             logAudit(username, "CREATE_CUSTOMER", "Customer created for user_id " + userId);
             return true;
         } catch (SQLException e) {

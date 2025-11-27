@@ -50,11 +50,6 @@ public class CardPanel extends JPanel{
             cardLayout.show(this, "CUSTOMER_LOGIN");
         });
 
-        loginRegister.getCustomerRegister().addActionListener(e -> {
-            customerRegister.clearInputs();
-            cardLayout.show(this, "CUSTOMER_REGISTER");
-        });
-
         loginRegister.getTellerLogin().addActionListener(e -> {
             cardLayout.show(this, "TELLER_LOGIN");
         });
