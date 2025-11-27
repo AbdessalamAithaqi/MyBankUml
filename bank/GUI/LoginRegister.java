@@ -20,7 +20,7 @@ public class LoginRegister extends JPanel {
         //setBackground(Color.GRAY);
         
         // TITLE
-        JLabel title = new JLabel("My Bank Uml", SwingConstants.CENTER);
+        JLabel title = new JLabel("My Bank UML", SwingConstants.CENTER);
         title.setFont(new Font("SansSerif", Font.BOLD, 40));
 
         add(title, BorderLayout.NORTH);

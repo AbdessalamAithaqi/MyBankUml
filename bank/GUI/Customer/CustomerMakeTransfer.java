@@ -14,6 +14,10 @@ public class CustomerMakeTransfer extends JPanel{
     private ButtonGroup fromAccount;
     private defaultButton transfer;
     private JPanel centerPanel;
+    private JLabel fromLabel;
+    private JLabel toLabel;
+    private JLabel fromBalance;
+    private JLabel toBalance;
 
     public CustomerMakeTransfer(){
         back = new defaultButton("Back");
@@ -74,8 +78,29 @@ public class CustomerMakeTransfer extends JPanel{
 
         textFieldPanel.setMaximumSize(textFieldPanel.getPreferredSize());;
 
+        fromLabel = new JLabel();
+        toLabel = new JLabel();
+        fromLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        toLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        fromBalance = new JLabel();
+        toBalance = new JLabel();
+        fromBalance.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        toBalance.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        JPanel direction = new JPanel(new GridLayout(2, 1));
+        JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        row1.add(fromLabel);
+        row1.add(fromBalance);
+        JPanel row2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        row2.add(toLabel);
+        row2.add(toBalance);
+        direction.add(row1);
+        direction.add(row2);
+        direction.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         panel.add(Box.createVerticalStrut(40));
         panel.add(radioButtons);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(direction);
         panel.add(Box.createVerticalStrut(10));
         panel.add(textFieldPanel);
         panel.add(Box.createVerticalStrut(20));
@@ -89,6 +114,50 @@ public class CustomerMakeTransfer extends JPanel{
 
     public defaultButton getTransferButton(){
         return transfer;
+    }
+
+    public boolean isFromCheck() {
+        return selectCheck.isSelected();
+    }
+
+    public JRadioButton getSelectCheckRadio() {
+        return selectCheck;
+    }
+
+    public JRadioButton getSelectSavingRadio() {
+        return selectSaving;
+    }
+
+    public void selectCheck() {
+        selectCheck.setSelected(true);
+    }
+
+    public void selectSaving() {
+        selectSaving.setSelected(true);
+    }
+
+    public void setAvailability(boolean hasCheck, boolean hasSaving) {
+        selectCheck.setEnabled(hasCheck);
+        selectSaving.setEnabled(hasSaving);
+        if (!hasCheck && hasSaving) {
+            selectSaving();
+        } else if (hasCheck && !hasSaving) {
+            selectCheck();
+        }
+    }
+
+    public String getAmountInput() {
+        return amount.getText().trim();
+    }
+
+    public void setDirectionLabels(String from, String to) {
+        fromLabel.setText("From: " + from);
+        toLabel.setText("To: " + to);
+    }
+
+    public void setBalanceLabels(String fromBalanceText, String toBalanceText) {
+        fromBalance.setText("(" + fromBalanceText + ")");
+        toBalance.setText("(" + toBalanceText + ")");
     }
     
 }
