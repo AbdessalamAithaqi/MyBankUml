@@ -1,7 +1,8 @@
-package bank.controllers;
+package bank.controllers.auth;
 
+import bank.controllers.admin.AdminController;
+import bank.controllers.customer.CustomerController;
 import bank.database.Database;
-
 //import bank.views.LoginView;
 import bank.models.org.Bank;
 

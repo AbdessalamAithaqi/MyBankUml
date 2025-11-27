@@ -1,4 +1,4 @@
-package GUI.Customer.CreditCard;
+package bank.GUI.Customer.CreditCard;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -132,4 +132,3 @@ public class frontCreditCard extends JPanel{
         bankLabel.setText(bankName.toUpperCase());
     }
 }
-

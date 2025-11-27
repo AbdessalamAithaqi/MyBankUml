@@ -1,4 +1,4 @@
-package GUI.Buttons;
+package bank.GUI.Buttons;
 
 import javax.swing.*;
 import java.awt.*;

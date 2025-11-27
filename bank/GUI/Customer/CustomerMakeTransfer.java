@@ -1,9 +1,9 @@
-package GUI.Customer;
+package bank.GUI.Customer;
 
 import javax.swing.*;
 import java.awt.*;
 
-import GUI.Buttons.defaultButton;
+import bank.GUI.Buttons.defaultButton;
 
 public class CustomerMakeTransfer extends JPanel{
 

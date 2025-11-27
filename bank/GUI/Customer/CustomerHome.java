@@ -1,12 +1,12 @@
-package GUI.Customer;
+package bank.GUI.Customer;
 
 import javax.swing.*;
 
-import GUI.Buttons.defaultButton;
+import bank.GUI.Buttons.defaultButton;
 
 import java.awt.*;
 
-import Models.Customer;
+import bank.models.users.Customer;
 
 public class CustomerHome extends JPanel{
 
@@ -127,5 +127,4 @@ public class CustomerHome extends JPanel{
         return showCard;
     }
 }
-
 

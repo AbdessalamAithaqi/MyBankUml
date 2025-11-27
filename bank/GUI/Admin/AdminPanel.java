@@ -1,4 +1,4 @@
-package GUI.Admin;
+package bank.GUI.Admin;
 
 import javax.swing.*;
 

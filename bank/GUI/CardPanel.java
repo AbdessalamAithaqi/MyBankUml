@@ -4,9 +4,9 @@ import java.awt.CardLayout;
 
 import javax.swing.*;
 
-import GUI.Customer.CustomerCardPanel;
-import GUI.Teller.TellerPanel;
-import Models.Customer;
+import bank.GUI.Customer.CustomerCardPanel;
+import bank.GUI.Teller.TellerPanel;
+import bank.models.users.Customer;
 
 public class CardPanel extends JPanel{
 

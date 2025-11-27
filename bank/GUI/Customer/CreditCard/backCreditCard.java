@@ -1,4 +1,4 @@
-package GUI.Customer.CreditCard;
+package bank.GUI.Customer.CreditCard;
 
 import javax.swing.*;
 
