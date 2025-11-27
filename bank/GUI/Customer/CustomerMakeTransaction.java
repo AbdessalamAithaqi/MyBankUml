@@ -172,6 +172,10 @@ public class CustomerMakeTransaction extends JPanel{
     }
 
     public record AccountOption(int accountId, String label) {
-        @Override public String toString() { return label; }
+        
+        @Override 
+        public String toString() { 
+            return label; 
+        }
     }
 }

@@ -63,7 +63,7 @@ public class TellerPanel extends JPanel{
         panel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
         // --- Radio buttons ---
-        byCustomerRadio = new JRadioButton("Search by Customer ID");
+        byCustomerRadio = new JRadioButton("Search by Customer Last Name");
         byAccountIdRadio = new JRadioButton("Search by Account ID");
         byTypeRadio = new JRadioButton("Search by Account Type");
 
@@ -85,7 +85,7 @@ public class TellerPanel extends JPanel{
         accountIdField = new JTextField(15);
         typeCombo = new JComboBox<>(new String[] { "Checking", "Saving" });
 
-        JPanel customerRow = makeLabeledRow("Customer ID:", customerIdField);
+        JPanel customerRow = makeLabeledRow("Last Name:", customerIdField);
         JPanel accountRow  = makeLabeledRow("Account ID:", accountIdField);
         JPanel typeRow     = makeLabeledRow("Type:", typeCombo);
 
@@ -183,6 +183,11 @@ public class TellerPanel extends JPanel{
 
     public String getCustomerIdInput() {
         return customerIdField.getText().trim();
+    }
+
+    // Alias for clarity with last-name search
+    public String getCustomerLastNameInput() {
+        return getCustomerIdInput();
     }
 
     public String getAccountIdInput() {
