@@ -1,4 +1,4 @@
-package GUI;
+package bank.GUI;
 
 import javax.swing.*;
 import java.awt.*;

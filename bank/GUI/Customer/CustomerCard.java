@@ -1,4 +1,4 @@
-package GUI.Customer;
+package bank.GUI.Customer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -8,9 +8,9 @@ import java.awt.*;
 import java.awt.event.*;
 
 
-import GUI.Buttons.defaultButton;
-import GUI.Customer.CreditCard.backCreditCard;
-import GUI.Customer.CreditCard.frontCreditCard;
+import bank.GUI.Buttons.defaultButton;
+import bank.GUI.Customer.CreditCard.backCreditCard;
+import bank.GUI.Customer.CreditCard.frontCreditCard;
 
 public class CustomerCard extends JPanel{
     

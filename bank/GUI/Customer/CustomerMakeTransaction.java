@@ -1,4 +1,4 @@
-package GUI.Customer;
+package bank.GUI.Customer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -10,7 +10,7 @@ import javax.swing.SwingConstants;
 
 import java.awt.*;
 
-import GUI.Buttons.defaultButton;
+import bank.GUI.Buttons.defaultButton;
 
 
 public class CustomerMakeTransaction extends JPanel{

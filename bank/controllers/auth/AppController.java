@@ -1,7 +1,7 @@
-package bank.controllers;
+package bank.controllers.auth;
 
-import bank.views.LoginView;
 import bank.models.org.Bank;
+import bank.views.LoginView;
 
 
 public class AppController {

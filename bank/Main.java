@@ -1,9 +1,8 @@
+package bank;
+
+import bank.GUI.CardPanel;
 import java.awt.Dimension;
-
 import javax.swing.JFrame;
-import GUI.CardPanel;
-
-import bank.models.*;
 
 public class Main {
     public static void main(String[] args) {

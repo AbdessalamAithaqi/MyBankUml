@@ -1,8 +1,8 @@
-package GUI.Customer;
+package bank.GUI.Customer;
 
 import javax.swing.*;
 import java.awt.*;
-import Models.Transaction;
+import bank.models.Transaction;
 
 
 public class CustomerTransactions extends JPanel{

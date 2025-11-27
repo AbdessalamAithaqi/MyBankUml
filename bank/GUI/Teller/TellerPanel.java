@@ -1,4 +1,4 @@
-package GUI.Teller;
+package bank.GUI.Teller;
 
 import java.awt.*;
 
@@ -196,4 +196,3 @@ public class TellerPanel extends JPanel{
     }
 }
     
-

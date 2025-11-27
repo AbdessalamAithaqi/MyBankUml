@@ -1,11 +1,11 @@
-package GUI.Customer;
+package bank.GUI.Customer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import Models.Customer;
+import bank.models.users.Customer;
 
 public class CustomerCardPanel extends JPanel{
     private CardLayout cardLayout;

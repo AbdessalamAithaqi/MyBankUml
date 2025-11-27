@@ -1,11 +1,11 @@
-package GUI;
+package bank.GUI;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-import GUI.Buttons.*;
+import bank.GUI.Buttons.*;
 
 public class LoginRegister extends JPanel {
 
@@ -165,4 +165,3 @@ public class LoginRegister extends JPanel {
     return admin;
  }
 }
-
