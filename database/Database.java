@@ -232,12 +232,18 @@ public class Database {
         public final String accountNumber;
         public final String accountType;
         public final double balance;
+        public final String ownerDisplay;
 
         public PrimaryAccount(int accountId, String accountNumber, String accountType, double balance) {
+            this(accountId, accountNumber, accountType, balance, null);
+        }
+
+        public PrimaryAccount(int accountId, String accountNumber, String accountType, double balance, String ownerDisplay) {
             this.accountId = accountId;
             this.accountNumber = accountNumber;
             this.accountType = accountType;
             this.balance = balance;
+            this.ownerDisplay = ownerDisplay;
         }
     }
 
@@ -263,17 +269,15 @@ public class Database {
     }
 
     public PrimaryAccount getPrimaryAccountById(int accountId) {
-        String sql = "SELECT account_id, account_number, account_type, balance FROM ACCOUNT WHERE account_id = ?";
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
+                     "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
+                     "JOIN USER u ON c.user_id = u.user_id " +
+                     "WHERE a.account_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, accountId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new PrimaryAccount(
-                        rs.getInt("account_id"),
-                        rs.getString("account_number"),
-                        rs.getString("account_type"),
-                        rs.getDouble("balance")
-                    );
+                    return mapPrimaryAccount(rs);
                 }
             }
         } catch (SQLException e) {
@@ -304,22 +308,61 @@ public class Database {
      * Fetch accounts from ACCOUNT for a given customer_id.
      */
     public List<PrimaryAccount> getPrimaryAccountsByCustomerId(int customerId) {
-        String sql = "SELECT account_id, account_number, account_type, balance FROM ACCOUNT WHERE customer_id = ?";
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
+                     "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
+                     "JOIN USER u ON c.user_id = u.user_id " +
+                     "WHERE a.customer_id = ?";
         List<PrimaryAccount> accounts = new ArrayList<>();
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, customerId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    accounts.add(new PrimaryAccount(
-                        rs.getInt("account_id"),
-                        rs.getString("account_number"),
-                        rs.getString("account_type"),
-                        rs.getDouble("balance")
-                    ));
+                    accounts.add(mapPrimaryAccount(rs));
                 }
             }
         } catch (SQLException e) {
             System.err.println("Error fetching primary accounts: " + e.getMessage());
+        }
+        return accounts;
+    }
+
+    public List<PrimaryAccount> getPrimaryAccountsByType(String accountType) {
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
+                     "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
+                     "JOIN USER u ON c.user_id = u.user_id " +
+                     "WHERE a.account_type = ?";
+        List<PrimaryAccount> accounts = new ArrayList<>();
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, accountType.toUpperCase());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    accounts.add(mapPrimaryAccount(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching primary accounts by type: " + e.getMessage());
+        }
+        return accounts;
+    }
+
+    /**
+     * Fetch accounts by customer last name (case-insensitive, partial match).
+     */
+    public List<PrimaryAccount> getPrimaryAccountsByCustomerLastName(String lastName) {
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
+                     "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
+                     "JOIN USER u ON c.user_id = u.user_id " +
+                     "WHERE LOWER(c.last_name) LIKE LOWER(?)";
+        List<PrimaryAccount> accounts = new ArrayList<>();
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + lastName + "%");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    accounts.add(mapPrimaryAccount(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching primary accounts by customer last name: " + e.getMessage());
         }
         return accounts;
     }
@@ -423,6 +466,25 @@ public class Database {
             System.err.println("Error fetching primary transactions: " + e.getMessage());
         }
         return list;
+    }
+
+    private PrimaryAccount mapPrimaryAccount(ResultSet rs) throws SQLException {
+        String owner = rs.getString("first_name");
+        String ln = rs.getString("last_name");
+        String username = rs.getString("username");
+        String display;
+        if (owner != null && !owner.isBlank()) {
+            display = owner + (ln != null && !ln.isBlank() ? (" " + ln) : "");
+        } else {
+            display = username != null ? username : "Unknown";
+        }
+        return new PrimaryAccount(
+            rs.getInt("account_id"),
+            rs.getString("account_number"),
+            rs.getString("account_type"),
+            rs.getDouble("balance"),
+            display
+        );
     }
 
     /**
