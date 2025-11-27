@@ -1,42 +1,57 @@
 package bank.controllers.admin;
 
+import bank.GUI.Teller.TellerPanel;
+import bank.controllers.auth.LoginController;
 import bank.database.Database;
 import bank.models.org.Bank;
 
-public class AdminController {
-    //private final AdminView view;
-    //private final Admininstrator admin;
-    private final Database db;
+import java.awt.*;
 
-    public AdminController(Bank bank, AdminView view, String username) {
+import javax.swing.*;
+
+public class AdminController {
+    private final Database db;
+    private final JPanel container;
+    private final CardLayout cardLayout;
+    private final String cardName;
+    private final TellerPanel view;
+    private final Runnable onLogout;
+    private final Bank bank;
+
+    public AdminController(Bank bank, JPanel container, CardLayout cardLayout, String username, Runnable onLogout) {
+        this.bank = bank;
+        this.container = container;
+        this.cardLayout = cardLayout;
+        this.onLogout = onLogout;
+
         this.db = Database.getInstance();
         db.getConnection();
-        
-        //this.admin = db.(...);
-        
+
+        this.cardName = "ADMIN_HOME_" + username;
+        this.view = new TellerPanel("Account Search (Admin)");
+        container.add(view, cardName);
+
         attachEventHandlers();
     }
 
     private void attachEventHandlers() {
-        /**
-        view.addDepositListener(e -> func());
-        view.addWithdrawListener(e -> func());
-        view.addGetAccountsListener(e -> func());
-        view.addViewTransactionsListener(e -> func());
-        view.addCreateTransactionListener(e -> func());
-        
-        view.addGetAllAccountsListener(e -> func());
-        view.addGetAccountByIdListener(e -> func());
-        view.addGetAccountByTypeListener(e -> func());
-        
-        view.addModifyAccountListener();
-        view.addUserListener();
-        view.deleteUserListener();
-        view.modifyUserListener()l
-        */
+        view.getLogoutButton().addActionListener(e -> {
+            cardLayout.show(container, LoginController.CARD_LOGIN_REGISTER);
+            container.revalidate();
+            container.repaint();
+            if (onLogout != null) {
+                onLogout.run();
+            }
+        });
     }
 
-    private void showLogin() {
-        view.show();
+    public void showDashboard() {
+        cardLayout.show(container, cardName);
+    }
+
+    public void dispose() {
+        container.remove(view);
+        container.revalidate();
+        container.repaint();
     }
 }

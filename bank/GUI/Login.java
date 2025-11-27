@@ -10,13 +10,16 @@ public class Login extends JPanel {
 
     private JButton login;
     private JButton back;
+    private JLabel title;
+    private JLabel confirmLabel;
+    private JPasswordField confirmPassword;
 
     public Login(String type){
 
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
 
-        JLabel title = new JLabel(type + " Login", SwingConstants.CENTER);
+        title = new JLabel(type + " Login", SwingConstants.CENTER);
         title.setFont(new Font("SansSerif", Font.BOLD, 40));
         add(title, BorderLayout.NORTH);
 
@@ -48,6 +51,22 @@ public class Login extends JPanel {
         password.setMaximumSize(new Dimension(250,60));
         password.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(password);
+
+        centerPanel.add(Box.createVerticalStrut(10));
+
+        confirmLabel = new JLabel("Confirm Password:", SwingConstants.CENTER);
+        confirmLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        confirmLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        confirmPassword = new JPasswordField();
+        confirmPassword.setPreferredSize(new Dimension(250, 60));
+        confirmPassword.setMaximumSize(new Dimension(250,60));
+        confirmPassword.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        confirmLabel.setVisible(false);
+        confirmPassword.setVisible(false);
+        centerPanel.add(confirmLabel);
+        centerPanel.add(confirmPassword);
 
         centerPanel.add(Box.createVerticalStrut(10));
         
@@ -82,5 +101,34 @@ public class Login extends JPanel {
 
     public JButton getLoginButton(){
         return login;
+    }
+
+    public String getUsernameInput() {
+        return username.getText().trim();
+    }
+
+    public String getPasswordInput() {
+        return new String(password.getPassword());
+    }
+
+    public String getConfirmPasswordInput() {
+        return new String(confirmPassword.getPassword());
+    }
+
+    public void clearInputs() {
+        username.setText("");
+        password.setText("");
+        confirmPassword.setText("");
+    }
+
+    public void setHeading(String text) {
+        title.setText(text);
+    }
+
+    public void enableConfirmPassword(boolean enabled) {
+        confirmLabel.setVisible(enabled);
+        confirmPassword.setVisible(enabled);
+        revalidate();
+        repaint();
     }
 }

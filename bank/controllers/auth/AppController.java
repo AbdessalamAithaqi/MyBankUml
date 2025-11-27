@@ -1,19 +1,21 @@
 package bank.controllers.auth;
 
 import bank.models.org.Bank;
-import bank.views.LoginView;
 
+import javax.swing.*;
+import java.awt.*;
 
+/**
+ * Thin wrapper kept for compatibility; delegates to LoginController.
+ */
 public class AppController {
-    private final Bank model;
     private final LoginController loginController;
 
-    public AppController(Bank model, LoginView loginView) {
-        this.model = model;
-        this.loginController = new LoginController(model, loginView);
+    public AppController(Bank model, JPanel container, CardLayout cardLayout) {
+        this.loginController = new LoginController(model, container, cardLayout);
     }
 
     public void start() {
-        loginController.showLogin();
+        loginController.showLoginHome();
     }
 }

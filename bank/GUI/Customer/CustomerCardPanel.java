@@ -10,6 +10,7 @@ import bank.models.users.Customer;
 public class CustomerCardPanel extends JPanel{
     private CardLayout cardLayout;
 
+    private final Customer customer;
     private CustomerHome customerHome;
     //private Customer customer;
 
@@ -23,11 +24,11 @@ public class CustomerCardPanel extends JPanel{
         cardLayout = new CardLayout();
         setLayout(cardLayout);
 
-        //this.customer = customer;
+        this.customer = customer;
         customerHome = new CustomerHome(customer);
         
        
-        card = new CustomerCard();
+        card = new CustomerCard(customer);
         transactionPanel = new CustomerMakeTransaction();
         transferPanel = new CustomerMakeTransfer();
 

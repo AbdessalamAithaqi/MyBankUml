@@ -11,13 +11,16 @@ import java.awt.event.*;
 import bank.GUI.Buttons.defaultButton;
 import bank.GUI.Customer.CreditCard.backCreditCard;
 import bank.GUI.Customer.CreditCard.frontCreditCard;
+import bank.models.users.Customer;
 
 public class CustomerCard extends JPanel{
     
     private defaultButton back;
     private defaultButton makeTransaction;
+    private final Customer customer;
 
-    public CustomerCard(){
+    public CustomerCard(Customer customer){
+        this.customer = customer;
 
         back = new defaultButton("Back");
         makeTransaction = new defaultButton("Make Transaction");
@@ -46,7 +49,8 @@ public class CustomerCard extends JPanel{
         JPanel panel = new JPanel(new GridBagLayout());
     panel.setOpaque(false); // if you want the parent background to show
 
-    frontCreditCard front = new frontCreditCard("MyBankUML", "1111 2222 3333 4444", "Ulysse", "01/28");
+    String cardName = customer != null ? customer.getName() : "Customer";
+    frontCreditCard front = new frontCreditCard("MyBankUML", "1111 2222 3333 4444", cardName, "01/28");
     backCreditCard back  = new backCreditCard("123");
 
     GridBagConstraints gbc = new GridBagConstraints();
