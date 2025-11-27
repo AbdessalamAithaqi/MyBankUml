@@ -8,7 +8,7 @@ import java.awt.Cursor;
 
 public class adminButton extends JButton{
     public adminButton(){
-        super("<html><u>admin</u></html>");
+        super("<html><u>Admin</u></html>");
         setBorderPainted(false);
         setContentAreaFilled(false);
         setFont(new Font("SansSerif", Font.PLAIN, 16));

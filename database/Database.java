@@ -346,7 +346,7 @@ public class Database {
     }
 
     /**
-     * Fetch accounts by customer last name (case-insensitive, partial match).
+     * Fetch accounts by customer last name (partial, case-insensitive).
      */
     public List<PrimaryAccount> getPrimaryAccountsByCustomerLastName(String lastName) {
         String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
@@ -367,6 +367,9 @@ public class Database {
         return accounts;
     }
 
+    /**
+     * Fetch accounts by customer last name (case-insensitive, partial match).
+     */
     public Double getPrimaryAccountBalance(int accountId) {
         String sql = "SELECT balance FROM ACCOUNT WHERE account_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -468,6 +471,154 @@ public class Database {
         return list;
     }
 
+    /**
+     * Delete a user from the primary USER table.
+     */
+    public boolean deletePrimaryUser(String username) {
+        // Identify role to cascade delete from role-specific tables.
+        String role = getUserRole(username);
+        if (role != null) {
+            deleteRoleRecord(username, role);
+        }
+
+        String sql = "DELETE FROM USER WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deleting user from USER: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update a user in the primary USER table.
+     * Null parameters are ignored.
+     */
+    public boolean updatePrimaryUser(String username, String newPassword, String newRole) {
+        StringBuilder sb = new StringBuilder("UPDATE USER SET ");
+        List<Object> params = new ArrayList<>();
+        if (newPassword != null) {
+            sb.append("password_hash = ?, ");
+            params.add(newPassword);
+        }
+        if (newRole != null) {
+            sb.append("user_type = ?, ");
+            params.add(newRole.toUpperCase());
+        }
+        if (params.isEmpty()) {
+            return false;
+        }
+        sb.append("updated_at = datetime('now') WHERE username = ?");
+        params.add(username);
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sb.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                pstmt.setObject(i + 1, params.get(i));
+            }
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating user in USER: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updatePrimaryAccountStatus(int accountId, String status) {
+        String normalized = status.toUpperCase();
+        if (!normalized.equals("ACTIVE") && !normalized.equals("FROZEN") && !normalized.equals("CLOSED")) {
+            System.err.println("Invalid account status: " + status);
+            return false;
+        }
+        String sql = "UPDATE ACCOUNT SET status = ?, updated_at = datetime('now') WHERE account_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, normalized);
+            pstmt.setInt(2, accountId);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating primary account status: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create a new account in the primary ACCOUNT table.
+     */
+    public int createPrimaryAccount(int customerId, String accountType, double balance, int branchId) {
+        String normalizedType = accountType.toUpperCase().startsWith("SAV") ? "SAVING" : "CHECK";
+        String accountNumber = generatePrimaryAccountNumber(normalizedType, customerId);
+        String sql = "INSERT INTO ACCOUNT (account_number, customer_id, account_type, balance, status, branch_id, opened_date) " +
+                     "VALUES (?, ?, ?, ?, 'ACTIVE', ?, date('now'))";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, accountNumber);
+            pstmt.setInt(2, customerId);
+            pstmt.setString(3, normalizedType);
+            pstmt.setDouble(4, balance);
+            pstmt.setInt(5, branchId);
+            pstmt.executeUpdate();
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int accountId = rs.getInt(1);
+                    logAudit("SYSTEM", "CREATE_ACCOUNT_PRIMARY", "Account " + accountNumber + " (" + normalizedType + ") created for customer_id " + customerId);
+                    return accountId;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error creating primary account: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    private String generatePrimaryAccountNumber(String accountType, int customerId) {
+        String prefix = accountType.startsWith("SAV") ? "SAV" : "CHK";
+        long ts = System.currentTimeMillis() % 1000000;
+        return prefix + "-" + customerId + "-" + ts;
+    }
+
+    /**
+     * Create a minimal EMPLOYEE row for a teller.
+     */
+    public boolean createPrimaryEmployee(String username, String firstName, String lastName) {
+        Integer userId = getPrimaryUserId(username);
+        if (userId == null) {
+            System.err.println("Cannot create employee; user not found: " + username);
+            return false;
+        }
+        String sql = "INSERT INTO EMPLOYEE (user_id, branch_id, first_name, last_name, position, department, hire_date, is_teller, is_manager) " +
+                     "VALUES (?, 1, ?, ?, 'Teller', 'Customer Service', date('now'), 1, 0)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, firstName == null ? "" : firstName);
+            pstmt.setString(3, lastName == null ? "" : lastName);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error creating employee: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create a minimal ADMINISTRATOR row.
+     */
+    public boolean createPrimaryAdministrator(String username, String firstName, String lastName) {
+        Integer userId = getPrimaryUserId(username);
+        if (userId == null) {
+            System.err.println("Cannot create admin; user not found: " + username);
+            return false;
+        }
+        String sql = "INSERT INTO ADMINISTRATOR (user_id, first_name, last_name, access_level) VALUES (?, ?, ?, 'FULL')";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, firstName == null ? "" : firstName);
+            pstmt.setString(3, lastName == null ? "" : lastName);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error creating administrator: " + e.getMessage());
+            return false;
+        }
+    }
+
     private PrimaryAccount mapPrimaryAccount(ResultSet rs) throws SQLException {
         String owner = rs.getString("first_name");
         String ln = rs.getString("last_name");
@@ -485,6 +636,33 @@ public class Database {
             rs.getDouble("balance"),
             display
         );
+    }
+
+    /**
+     * Delete a row from CUSTOMER/EMPLOYEE/ADMINISTRATOR based on username+role.
+     */
+    private void deleteRoleRecord(String username, String role) {
+        String table;
+        switch (role.toUpperCase()) {
+            case "CUSTOMER":
+                table = "CUSTOMER";
+                break;
+            case "TELLER":
+                table = "EMPLOYEE";
+                break;
+            case "ADMIN":
+                table = "ADMINISTRATOR";
+                break;
+            default:
+                return;
+        }
+        String sql = "DELETE FROM " + table + " WHERE user_id = (SELECT user_id FROM USER WHERE username = ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error deleting from " + table + ": " + e.getMessage());
+        }
     }
 
     /**

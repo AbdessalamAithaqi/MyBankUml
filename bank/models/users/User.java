@@ -19,6 +19,11 @@ public class User {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // Explicit getter to ensure availability even if Lombok is not processed.
+    public String getUsername() {
+        return username;
+    }
+
     public User(
             Integer userId,
             String username,
