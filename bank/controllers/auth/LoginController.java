@@ -10,6 +10,8 @@ import bank.models.org.Bank;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 public class LoginController {
     public static final String CARD_LOGIN_REGISTER = "LOGIN_REGISTER";
@@ -47,6 +49,7 @@ public class LoginController {
         customerRegisterView.setHeading("Customer Registration");
         customerRegisterView.getLoginButton().setText("Register");
         customerRegisterView.enableConfirmPassword(true);
+        customerRegisterView.enableCustomerDetails(true);
         tellerLoginView = new Login("Teller");
         adminLoginView = new Login("Admin");
 
@@ -208,7 +211,16 @@ public class LoginController {
             firstName = username.substring(0, dot);
             lastName = username.substring(dot + 1);
         }
-        if (!db.createCustomerPrimary(username, firstName, lastName)) {
+        String birthplace = customerRegisterView.getBirthplaceInput();
+        String address = customerRegisterView.getAddressInput();
+        String dob = customerRegisterView.getDobInput();
+        if (!isValidDob(dob)) {
+            showError("Enter a valid date of birth (YYYY-MM-DD), not in the future.");
+            return false;
+        }
+        birthplace = birthplace == null ? "" : birthplace.trim();
+        address = address == null ? "" : address.trim();
+        if (!db.createCustomerPrimary(username, firstName, lastName, birthplace, dob, address)) {
             return false;
         }
         Integer customerId = db.getPrimaryCustomerIdByUsername(username);
@@ -217,6 +229,20 @@ public class LoginController {
             db.createPrimaryAccount(customerId, "SAVING", 0.0, 1);
         }
         return true;
+    }
+
+    private boolean isValidDob(String dob) {
+        if (dob == null || dob.isBlank()) {
+            return false;
+        }
+        try {
+            LocalDate date = LocalDate.parse(dob.trim());
+            LocalDate earliest = LocalDate.of(1900, 1, 1);
+            LocalDate today = LocalDate.now();
+            return !date.isAfter(today) && !date.isBefore(earliest);
+        } catch (DateTimeParseException e) {
+            return false;
+        }
     }
 
     private void showCustomerDashboard(String username) {

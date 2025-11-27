@@ -18,6 +18,10 @@ public class TellerPanel extends JPanel{
     private JTextField customerIdField;
     private JTextField accountIdField;
     private JComboBox<String> typeCombo;
+    private JTextField birthplaceField;
+    private JTextField addressField;
+    private JTextField createdAfterField;
+    private JTextField dobAfterField;
 
     private JButton searchButton;
 
@@ -107,10 +111,18 @@ public class TellerPanel extends JPanel{
         customerIdField = new JTextField(15);
         accountIdField = new JTextField(15);
         typeCombo = new JComboBox<>(new String[] { "Checking", "Saving" });
+        birthplaceField = new JTextField(15);
+        addressField = new JTextField(15);
+        createdAfterField = new JTextField(10);
+        dobAfterField = new JTextField(10);
 
         JPanel customerRow = makeLabeledRow("Last Name:", customerIdField);
         JPanel accountRow  = makeLabeledRow("Account ID:", accountIdField);
         JPanel typeRow     = makeLabeledRow("Type:", typeCombo);
+        JPanel birthplaceRow = makeLabeledRow("Birthplace contains:", birthplaceField);
+        JPanel addressRow = makeLabeledRow("Address contains:", addressField);
+        JPanel createdRow = makeLabeledRow("User created after (YYYY-MM-DD):", createdAfterField);
+        JPanel dobRow = makeLabeledRow("Birthdate after (YYYY-MM-DD):", dobAfterField);
 
         // --- Search button ---
         searchButton = new JButton("Search");
@@ -123,6 +135,10 @@ public class TellerPanel extends JPanel{
         panel.add(customerRow);
         panel.add(accountRow);
         panel.add(typeRow);
+        panel.add(birthplaceRow);
+        panel.add(addressRow);
+        panel.add(createdRow);
+        panel.add(dobRow);
         panel.add(Box.createVerticalStrut(8));
         panel.add(buttonRow);
 
@@ -155,6 +171,10 @@ public class TellerPanel extends JPanel{
         boolean byType     = byTypeRadio.isSelected();
 
         customerIdField.setEnabled(byCustomer);
+        birthplaceField.setEnabled(byCustomer);
+        addressField.setEnabled(byCustomer);
+        createdAfterField.setEnabled(byCustomer);
+        dobAfterField.setEnabled(byCustomer);
         accountIdField.setEnabled(byAccount);
         typeCombo.setEnabled(byType);
     }
@@ -168,6 +188,7 @@ public class TellerPanel extends JPanel{
         resultsScroll.setBorder(BorderFactory.createTitledBorder("Results"));
         resultsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         resultsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        resultsScroll.getVerticalScrollBar().setUnitIncrement(24);
 
         return resultsScroll;
     }
@@ -204,7 +225,7 @@ public class TellerPanel extends JPanel{
         JPanel row = new JPanel(new BorderLayout());
         row.setBorder(new EmptyBorder(6, 10, 6, 10));
         row.setBackground(new Color(245, 245, 245));
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
 
         JLabel label = new JLabel(text);
         label.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -247,6 +268,11 @@ public class TellerPanel extends JPanel{
     public String getSelectedType() {
         return (String) typeCombo.getSelectedItem();
     }
+
+    public String getBirthplaceFilter() { return birthplaceField.getText().trim(); }
+    public String getAddressFilter() { return addressField.getText().trim(); }
+    public String getCreatedAfterFilter() { return createdAfterField.getText().trim(); }
+    public String getDobAfterFilter() { return dobAfterField.getText().trim(); }
 
     // Call this from the controller with formatted strings per account
     public void showAccounts(List<String> accountLines) {

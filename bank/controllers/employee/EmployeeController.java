@@ -69,12 +69,16 @@ public class EmployeeController {
         List<PrimaryAccount> results = new ArrayList<>();
         try {
             if (view.isSearchByCustomer()) {
-                String input = view.getCustomerLastNameInput();
-                if (input.isBlank()) {
-                    showError("Enter a customer last name.");
+                String ln = view.getCustomerLastNameInput();
+                String birthplace = view.getBirthplaceFilter();
+                String address = view.getAddressFilter();
+                String createdAfter = view.getCreatedAfterFilter();
+                String dobAfter = view.getDobAfterFilter();
+                if (ln.isBlank() && birthplace.isBlank() && address.isBlank() && createdAfter.isBlank() && dobAfter.isBlank()) {
+                    showError("Enter at least one filter (name/birthplace/address/created-after/dob-after).");
                     return;
                 }
-                results = db.getPrimaryAccountsByCustomerLastName(input);
+                results = db.getPrimaryAccountsByCustomerFilters(ln, birthplace, address, createdAfter, dobAfter);
             } else if (view.isSearchByAccountId()) {
                 String input = view.getAccountIdInput();
                 if (input.isBlank()) {
@@ -109,7 +113,18 @@ public class EmployeeController {
     private String formatAccount(PrimaryAccount acc) {
         String masked = maskAccount(acc.accountNumber);
         String owner = acc.ownerDisplay != null ? acc.ownerDisplay : "Unknown";
-        return masked + " | id=" + acc.accountId + " | type=" + acc.accountType + " | $" + String.format("%.2f", acc.balance) + " | owner=" + owner;
+        String birthplace = acc.birthplace != null ? acc.birthplace : "N/A";
+        String addr = acc.address != null ? acc.address : "N/A";
+        String dob = acc.dateOfBirth != null ? acc.dateOfBirth : "N/A";
+        String created = acc.createdAt != null ? acc.createdAt : "N/A";
+        return "<html><b>Account:</b> " + masked + " (id " + acc.accountId + ") | <b>Type:</b> " + acc.accountType +
+               " | <b>Balance:</b> $" + String.format("%.2f", acc.balance) +
+               "<br/><b>Owner:</b> " + owner +
+               "<br/><b>Birthplace:</b> " + birthplace +
+               "<br/><b>Address:</b> " + addr +
+               "<br/><b>DOB:</b> " + dob +
+               "<br/><b>User Created:</b> " + created +
+               "</html>";
     }
 
     private String maskAccount(String accountNumber) {
