@@ -10,12 +10,6 @@ This project demonstrates the use of Object-Oriented Programming (OOP) principle
 - **Transaction Handling**: Simulate payments and generate receipts.
 - **UML-Driven Design**: Class structure directly follows the given UML diagram.
 
-## 📊 Diagram
-
-![BankUml Hierarchical Diagram](./BankUml_Hierarchical_Diagram.drawio.svg)
-
-This diagram demonstrates the classes within the BankUml project template. Inheritance relationships are shown with solid line arrows, whilst implied relationships are shown with dashed line arrows. This is only a reference for the template, and you are free to change the application architecture as you see fit!
-
 ## 🚀 How to Run
 
 Make sure you have the following installed:
@@ -27,22 +21,22 @@ Make sure you have the following installed:
 
 ```bash
 git clone https://github.com/AbdessalamAithaqi/MyBankUml.git
-cd BankUml
+cd MyBankUml
 ```
 
 2. Compile the code:
 
 ```bash
-javac -cp "libs/*" bank/*.java
+mvn -q -DskipTests compile
 ```
 
 3. Run the program:
 
 ```bash
 # Linux/MAC
-java -cp ".:libs/*" bank.Main
+java -cp "target/classes:libs/*" bank.Main
 # Windows
-java -cp ".;libs/*" bank.Main
+java -cp "target/classes;libs/*" bank.Main
 ```
 
 To redownload the Lombok jar:
