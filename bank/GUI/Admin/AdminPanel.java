@@ -76,7 +76,7 @@ public class AdminPanel extends JPanel {
         addLabeled(panel, "Role:", userRole);
 
         addUser = new defaultButton("Add User");
-        updateUser = new defaultButton("Update User");
+        updateUser = new defaultButton("Modify Password");
         deleteUser = new defaultButton("Delete User");
         panel.add(addUser);
         panel.add(Box.createVerticalStrut(6));
@@ -151,6 +151,10 @@ public class AdminPanel extends JPanel {
     public String getAccountIdInput() { return searchPanel.getAccountIdInput(); }
     public String getSelectedType() { return searchPanel.getSelectedType(); }
     public void showAccounts(List<String> lines) { searchPanel.showAccounts(lines); }
+    public String getBirthplaceFilter() { return searchPanel.getBirthplaceFilter(); }
+    public String getAddressFilter() { return searchPanel.getAddressFilter(); }
+    public String getCreatedAfterFilter() { return searchPanel.getCreatedAfterFilter(); }
+    public String getDobAfterFilter() { return searchPanel.getDobAfterFilter(); }
 
     // User management getters
     public JButton getAddUserButton() { return addUser; }

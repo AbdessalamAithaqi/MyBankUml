@@ -13,6 +13,12 @@ public class Login extends JPanel {
     private JLabel title;
     private JLabel confirmLabel;
     private JPasswordField confirmPassword;
+    private JLabel birthplaceLabel;
+    private JTextField birthplaceField;
+    private JLabel addressLabel;
+    private JTextField addressField;
+    private JLabel dobLabel;
+    private JTextField dobField;
 
     public Login(String type){
 
@@ -69,6 +75,40 @@ public class Login extends JPanel {
         centerPanel.add(confirmPassword);
 
         centerPanel.add(Box.createVerticalStrut(10));
+        birthplaceLabel = new JLabel("Birthplace:", SwingConstants.CENTER);
+        birthplaceLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        birthplaceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        birthplaceField = new JTextField();
+        birthplaceField.setPreferredSize(new Dimension(250, 40));
+        birthplaceField.setMaximumSize(new Dimension(250,40));
+        birthplaceField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(birthplaceLabel);
+        centerPanel.add(birthplaceField);
+
+        centerPanel.add(Box.createVerticalStrut(10));
+        addressLabel = new JLabel("Address:", SwingConstants.CENTER);
+        addressLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        addressLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        addressField = new JTextField();
+        addressField.setPreferredSize(new Dimension(250, 40));
+        addressField.setMaximumSize(new Dimension(250,40));
+        addressField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(addressLabel);
+        centerPanel.add(addressField);
+
+        centerPanel.add(Box.createVerticalStrut(10));
+        dobLabel = new JLabel("Date of Birth (YYYY-MM-DD):", SwingConstants.CENTER);
+        dobLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        dobLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        dobField = new JTextField();
+        dobField.setPreferredSize(new Dimension(250, 40));
+        dobField.setMaximumSize(new Dimension(250,40));
+        dobField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(dobLabel);
+        centerPanel.add(dobField);
+        setCustomerDetailsVisible(false);
+
+        centerPanel.add(Box.createVerticalStrut(10));
         
         login = createButton("Login");
         centerPanel.add(login);
@@ -119,6 +159,9 @@ public class Login extends JPanel {
         username.setText("");
         password.setText("");
         confirmPassword.setText("");
+        birthplaceField.setText("");
+        addressField.setText("");
+        dobField.setText("");
     }
 
     public void setHeading(String text) {
@@ -128,7 +171,35 @@ public class Login extends JPanel {
     public void enableConfirmPassword(boolean enabled) {
         confirmLabel.setVisible(enabled);
         confirmPassword.setVisible(enabled);
+        setCustomerDetailsVisible(enabled);
         revalidate();
         repaint();
+    }
+
+    public void enableCustomerDetails(boolean enabled) {
+        setCustomerDetailsVisible(enabled);
+    }
+
+    private void setCustomerDetailsVisible(boolean visible) {
+        if (birthplaceLabel != null) {
+            birthplaceLabel.setVisible(visible);
+            birthplaceField.setVisible(visible);
+            addressLabel.setVisible(visible);
+            addressField.setVisible(visible);
+            dobLabel.setVisible(visible);
+            dobField.setVisible(visible);
+        }
+    }
+
+    public String getBirthplaceInput() {
+        return birthplaceField == null ? "" : birthplaceField.getText().trim();
+    }
+
+    public String getAddressInput() {
+        return addressField == null ? "" : addressField.getText().trim();
+    }
+
+    public String getDobInput() {
+        return dobField == null ? "" : dobField.getText().trim();
     }
 }

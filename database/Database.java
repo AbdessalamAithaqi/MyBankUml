@@ -212,7 +212,9 @@ public class Database {
         String sql = "INSERT INTO USER (username, password_hash, email, user_type, is_active) VALUES (?, ?, ?, ?, 1)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
-            pstmt.setString(2, password);
+            // Store bcrypt hash
+            String hash = BCrypt.hashpw(password, BCrypt.gensalt());
+            pstmt.setString(2, hash);
             // placeholder email to satisfy NOT NULL/UNIQUE without collecting PII
             pstmt.setString(3, username + "@placeholder.local");
             pstmt.setString(4, role.toUpperCase());
@@ -233,17 +235,26 @@ public class Database {
         public final String accountType;
         public final double balance;
         public final String ownerDisplay;
+        public final String birthplace;
+        public final String address;
+        public final String dateOfBirth;
+        public final String createdAt;
 
         public PrimaryAccount(int accountId, String accountNumber, String accountType, double balance) {
-            this(accountId, accountNumber, accountType, balance, null);
+            this(accountId, accountNumber, accountType, balance, null, null, null, null, null);
         }
 
-        public PrimaryAccount(int accountId, String accountNumber, String accountType, double balance, String ownerDisplay) {
+        public PrimaryAccount(int accountId, String accountNumber, String accountType, double balance, String ownerDisplay,
+                              String birthplace, String address, String dateOfBirth, String createdAt) {
             this.accountId = accountId;
             this.accountNumber = accountNumber;
             this.accountType = accountType;
             this.balance = balance;
             this.ownerDisplay = ownerDisplay;
+            this.birthplace = birthplace;
+            this.address = address;
+            this.dateOfBirth = dateOfBirth;
+            this.createdAt = createdAt;
         }
     }
 
@@ -269,7 +280,8 @@ public class Database {
     }
 
     public PrimaryAccount getPrimaryAccountById(int accountId) {
-        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+                     "c.birthplace, c.address, c.date_of_birth, u.created_at " +
                      "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
                      "JOIN USER u ON c.user_id = u.user_id " +
                      "WHERE a.account_id = ?";
@@ -308,7 +320,8 @@ public class Database {
      * Fetch accounts from ACCOUNT for a given customer_id.
      */
     public List<PrimaryAccount> getPrimaryAccountsByCustomerId(int customerId) {
-        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+                     "c.birthplace, c.address, c.date_of_birth, u.created_at " +
                      "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
                      "JOIN USER u ON c.user_id = u.user_id " +
                      "WHERE a.customer_id = ?";
@@ -327,7 +340,8 @@ public class Database {
     }
 
     public List<PrimaryAccount> getPrimaryAccountsByType(String accountType) {
-        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+                     "c.birthplace, c.address, c.date_of_birth, u.created_at " +
                      "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
                      "JOIN USER u ON c.user_id = u.user_id " +
                      "WHERE a.account_type = ?";
@@ -349,7 +363,8 @@ public class Database {
      * Fetch accounts by customer last name (partial, case-insensitive).
      */
     public List<PrimaryAccount> getPrimaryAccountsByCustomerLastName(String lastName) {
-        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name " +
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+                     "c.birthplace, c.address, c.date_of_birth, u.created_at " +
                      "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
                      "JOIN USER u ON c.user_id = u.user_id " +
                      "WHERE LOWER(c.last_name) LIKE LOWER(?)";
@@ -363,6 +378,56 @@ public class Database {
             }
         } catch (SQLException e) {
             System.err.println("Error fetching primary accounts by customer last name: " + e.getMessage());
+        }
+        return accounts;
+    }
+
+    /**
+     * Filter accounts by optional customer fields.
+     */
+    public List<PrimaryAccount> getPrimaryAccountsByCustomerFilters(String lastName, String birthplace, String address,
+                                                                    String createdAfter, String dobAfter) {
+        StringBuilder sb = new StringBuilder(
+            "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+            "c.birthplace, c.address, c.date_of_birth, u.created_at " +
+            "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
+            "JOIN USER u ON c.user_id = u.user_id WHERE 1=1 "
+        );
+        List<Object> params = new ArrayList<>();
+        if (lastName != null && !lastName.isBlank()) {
+            sb.append("AND LOWER(c.last_name) LIKE LOWER(?) ");
+            params.add("%" + lastName + "%");
+        }
+        if (birthplace != null && !birthplace.isBlank()) {
+            sb.append("AND LOWER(c.birthplace) LIKE LOWER(?) ");
+            params.add("%" + birthplace + "%");
+        }
+        if (address != null && !address.isBlank()) {
+            sb.append("AND LOWER(c.address) LIKE LOWER(?) ");
+            params.add("%" + address + "%");
+        }
+        if (createdAfter != null && !createdAfter.isBlank()) {
+            sb.append("AND date(u.created_at) >= date(?) ");
+            params.add(createdAfter);
+        }
+        if (dobAfter != null && !dobAfter.isBlank()) {
+            sb.append("AND date(c.date_of_birth) >= date(?) ");
+            params.add(dobAfter);
+        }
+        sb.append("ORDER BY a.account_id");
+
+        List<PrimaryAccount> accounts = new ArrayList<>();
+        try (PreparedStatement pstmt = connection.prepareStatement(sb.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                pstmt.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    accounts.add(mapPrimaryAccount(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching primary accounts with filters: " + e.getMessage());
         }
         return accounts;
     }
@@ -500,7 +565,7 @@ public class Database {
         List<Object> params = new ArrayList<>();
         if (newPassword != null) {
             sb.append("password_hash = ?, ");
-            params.add(newPassword);
+            params.add(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
         }
         if (newRole != null) {
             sb.append("user_type = ?, ");
@@ -634,7 +699,11 @@ public class Database {
             rs.getString("account_number"),
             rs.getString("account_type"),
             rs.getDouble("balance"),
-            display
+            display,
+            rs.getString("birthplace"),
+            rs.getString("address"),
+            rs.getString("date_of_birth"),
+            rs.getString("created_at")
         );
     }
 
@@ -699,17 +768,27 @@ public class Database {
      * @return true if row was created
      */
     public boolean createCustomerPrimary(String username, String firstName, String lastName) {
+        return createCustomerPrimary(username, firstName, lastName, null, null, null);
+    }
+
+    /**
+     * Create customer with optional details.
+     */
+    public boolean createCustomerPrimary(String username, String firstName, String lastName, String placeOfBirth, String dateOfBirth, String address) {
         Integer userId = getPrimaryUserId(username);
         if (userId == null) {
             return false;
         }
-        // CUSTOMER has NOT NULL constraints on first_name/last_name/date_of_birth; use provided names and a placeholder date.
-        String sql = "INSERT INTO CUSTOMER (user_id, first_name, last_name, date_of_birth) " +
-                     "VALUES (?, ?, ?, date('now'))";
+        String dob = (dateOfBirth == null || dateOfBirth.isBlank()) ? "1970-01-01" : dateOfBirth;
+        String sql = "INSERT INTO CUSTOMER (user_id, first_name, last_name, date_of_birth, birthplace, address) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             pstmt.setString(2, firstName == null ? "" : firstName);
             pstmt.setString(3, lastName == null ? "" : lastName);
+            pstmt.setString(4, dob);
+            pstmt.setString(5, placeOfBirth);
+            pstmt.setString(6, address);
             pstmt.executeUpdate();
             logAudit(username, "CREATE_CUSTOMER", "Customer created for user_id " + userId);
             return true;
@@ -800,15 +879,17 @@ public class Database {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     String storedHash = rs.getString("password_hash");
+                    String role = rs.getString("user_type");
                     if (storedHash != null && storedHash.equals(password)) {
-                        // Treat password_hash as the literal password (per current DB contents).
-                        return rs.getString("user_type");
+                        // Legacy plaintext match: rehash and update so future logins use bcrypt.
+                        updatePrimaryUser(username, password, null);
+                        return role;
                     }
-                    // Optional: still allow bcrypt hashes if they ever get populated.
+                    // Optional: bcrypt hashes (preferred).
                     if (storedHash != null && isBcryptHash(storedHash)) {
                         try {
                             if (BCrypt.checkpw(password, storedHash)) {
-                                return rs.getString("user_type");
+                                return role;
                             }
                         } catch (IllegalArgumentException ex) {
                             System.err.println("Invalid bcrypt hash for user " + username + ": " + ex.getMessage());
