@@ -1,8 +1,12 @@
 package bank.database;
 
 import java.sql.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * Singleton Database class for managing SQLite database operations.
@@ -11,12 +15,17 @@ import java.util.List;
 public class Database {
     private static Database instance;
     private Connection connection;
+    private Boolean auditLogSupportsUsername; // lazily detected
     private final String url;
     
     // Private constructor to prevent external instantiation
     private Database() {
-        // Default database location - can be overridden
-        this.url = "jdbc:sqlite:bank.db";
+        // Always use the populated database under /database/bank.db
+        Path dbPath = Paths.get("database", "bank.db").toAbsolutePath();
+        if (!Files.exists(dbPath)) {
+            throw new IllegalStateException("Expected database at " + dbPath + " but it was not found.");
+        }
+        this.url = "jdbc:sqlite:" + dbPath;
         connect();
     }
     
@@ -189,6 +198,74 @@ public class Database {
             return false;
         }
     }
+
+    /**
+     * Create a new user in the primary USER table (capitalized schema).
+     * For this project, password_hash stores the provided password directly.
+     *
+     * @param username the username
+     * @param password the password (stored as-is)
+     * @param role the user role (CUSTOMER, TELLER, ADMIN)
+     * @return true if user was created successfully
+     */
+    public boolean createUserPrimary(String username, String password, String role) {
+        String sql = "INSERT INTO USER (username, password_hash, email, user_type, is_active) VALUES (?, ?, ?, ?, 1)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            // placeholder email to satisfy NOT NULL/UNIQUE without collecting PII
+            pstmt.setString(3, username + "@placeholder.local");
+            pstmt.setString(4, role.toUpperCase());
+            pstmt.executeUpdate();
+            logAudit(username, "CREATE_USER", "User created with role: " + role);
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error creating user in USER table: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create a skeletal customer row in CUSTOMER for the given USER (personal fields empty by design).
+     *
+     * @param username the username already inserted in USER
+     * @return true if row was created
+     */
+    public boolean createCustomerPrimary(String username, String firstName, String lastName) {
+        Integer userId = getPrimaryUserId(username);
+        if (userId == null) {
+            return false;
+        }
+        // CUSTOMER has NOT NULL constraints on first_name/last_name/date_of_birth; use provided names and a placeholder date.
+        String sql = "INSERT INTO CUSTOMER (user_id, first_name, last_name, date_of_birth) " +
+                     "VALUES (?, ?, ?, date('now'))";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, firstName == null ? "" : firstName);
+            pstmt.setString(3, lastName == null ? "" : lastName);
+            pstmt.executeUpdate();
+            logAudit(username, "CREATE_CUSTOMER", "Customer created for user_id " + userId);
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error creating customer in CUSTOMER table: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private Integer getPrimaryUserId(String username) {
+        String sql = "SELECT user_id FROM USER WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("user_id");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching user_id from USER: " + e.getMessage());
+        }
+        return null;
+    }
     
     /**
      * Authenticate a user.
@@ -198,23 +275,22 @@ public class Database {
      * @return the user's role if authentication succeeds, null otherwise
      */
     public String authenticateUser(String username, String password) {
-        String sql = "SELECT role FROM users WHERE username = ? AND password = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                String role = rs.getString("role");
-                logAudit(username, "LOGIN_SUCCESS", "User logged in successfully");
-                return role;
-            } else {
-                logAudit(username, "LOGIN_FAILED", "Failed login attempt");
-                return null;
-            }
-        } catch (SQLException e) {
-            System.err.println("Error authenticating user: " + e.getMessage());
-            return null;
+        // First attempt to authenticate against the populated USER table using bcrypt hashes.
+        String role = authenticateAgainstPrimaryUserTable(username, password);
+        if (role != null) {
+            logAudit(username, "LOGIN_SUCCESS", "User logged in successfully");
+            return role;
         }
+
+        // Fallback: support legacy lowercase users table with plain-text passwords.
+        role = authenticateAgainstLegacyUsersTable(username, password);
+        if (role != null) {
+            logAudit(username, "LOGIN_SUCCESS", "User logged in successfully (legacy table)");
+            return role;
+        }
+
+        logAudit(username, "LOGIN_FAILED", "Failed login attempt");
+        return null;
     }
     
     /**
@@ -224,6 +300,19 @@ public class Database {
      * @return the user's role or null if not found
      */
     public String getUserRole(String username) {
+        // Check primary USER table first.
+        String sqlPrimary = "SELECT user_type FROM USER WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sqlPrimary)) {
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("user_type");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting user role from USER table: " + e.getMessage());
+        }
+
+        // Fallback to legacy users table.
         String sql = "SELECT role FROM users WHERE username = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
@@ -233,6 +322,50 @@ public class Database {
             }
         } catch (SQLException e) {
             System.err.println("Error getting user role: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private String authenticateAgainstPrimaryUserTable(String username, String password) {
+        String sql = "SELECT password_hash, user_type FROM USER WHERE username = ? AND is_active = 1";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    String storedHash = rs.getString("password_hash");
+                    if (storedHash != null && storedHash.equals(password)) {
+                        // Treat password_hash as the literal password (per current DB contents).
+                        return rs.getString("user_type");
+                    }
+                    // Optional: still allow bcrypt hashes if they ever get populated.
+                    if (storedHash != null && isBcryptHash(storedHash)) {
+                        try {
+                            if (BCrypt.checkpw(password, storedHash)) {
+                                return rs.getString("user_type");
+                            }
+                        } catch (IllegalArgumentException ex) {
+                            System.err.println("Invalid bcrypt hash for user " + username + ": " + ex.getMessage());
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error authenticating user against USER table: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private String authenticateAgainstLegacyUsersTable(String username, String password) {
+        String sql = "SELECT role FROM users WHERE username = ? AND password = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("role");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error authenticating user against legacy users table: " + e.getMessage());
         }
         return null;
     }
@@ -817,16 +950,49 @@ public class Database {
      * @param details additional details
      */
     private void logAudit(String username, String action, String details) {
-        String sql = "INSERT INTO audit_log (username, action, timestamp, details) " +
-                     "VALUES (?, ?, datetime('now'), ?)";
+        // The populated database uses the AUDIT_LOG schema with user_id/resource columns.
+        // Skip logging if that schema is not available.
+        if (!isAuditLogSupported()) {
+            return;
+        }
+
+        String sql = "INSERT INTO AUDIT_LOG (action, resource, resource_id, created_at) " +
+                     "VALUES (?, 'AUTH', ?, datetime('now'))";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            pstmt.setString(2, action);
-            pstmt.setString(3, details);
+            pstmt.setString(1, action);
+            pstmt.setString(2, username);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Error logging audit: " + e.getMessage());
         }
+    }
+
+    private boolean isAuditLogSupported() {
+        if (auditLogSupportsUsername != null) {
+            return auditLogSupportsUsername;
+        }
+        String sql = "PRAGMA table_info('AUDIT_LOG')";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            boolean hasAction = false;
+            boolean hasResource = false;
+            boolean hasResourceId = false;
+            while (rs.next()) {
+                String col = rs.getString("name");
+                if ("action".equalsIgnoreCase(col)) hasAction = true;
+                if ("resource".equalsIgnoreCase(col)) hasResource = true;
+                if ("resource_id".equalsIgnoreCase(col)) hasResourceId = true;
+            }
+            auditLogSupportsUsername = hasAction && hasResource && hasResourceId;
+        } catch (SQLException e) {
+            System.err.println("Error inspecting AUDIT_LOG schema: " + e.getMessage());
+            auditLogSupportsUsername = false;
+        }
+        return auditLogSupportsUsername;
+    }
+
+    private boolean isBcryptHash(String value) {
+        return value.startsWith("$2a$") || value.startsWith("$2b$") || value.startsWith("$2y$");
     }
     
     /**

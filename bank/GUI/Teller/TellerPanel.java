@@ -5,6 +5,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import bank.GUI.Buttons.defaultButton;
 
 import java.util.List;
 
@@ -23,14 +24,15 @@ public class TellerPanel extends JPanel{
     // Results area
     private JPanel resultsPanel;   // holds result rows vertically
     private JScrollPane resultsScroll;
+    private final defaultButton logout;
 
-    public TellerPanel(){
-       setLayout(new BorderLayout());
+    public TellerPanel(String heading){
+        setLayout(new BorderLayout());
         setBorder(new EmptyBorder(20, 20, 20, 20));
         setBackground(Color.WHITE);
 
         // ===== TITLE =====
-        JLabel title = new JLabel("Account Search (Teller)", SwingConstants.CENTER);
+        JLabel title = new JLabel(heading, SwingConstants.CENTER);
         title.setFont(new Font("SansSerif", Font.BOLD, 22));
         add(title, BorderLayout.NORTH);
 
@@ -42,7 +44,16 @@ public class TellerPanel extends JPanel{
         center.add(createResultsArea(), BorderLayout.CENTER);
 
         add(center, BorderLayout.CENTER);
+
+        logout = new defaultButton("Logout");
+        JPanel bottom = new JPanel();
+        bottom.add(logout);
+        add(bottom, BorderLayout.SOUTH);
         
+    }
+
+    public TellerPanel() {
+        this("Account Search (Teller)");
     }
 
     private JPanel createSearchPanel() {
@@ -193,6 +204,10 @@ public class TellerPanel extends JPanel{
         }
         resultsPanel.revalidate();
         resultsPanel.repaint();
+    }
+
+    public defaultButton getLogoutButton() {
+        return logout;
     }
 }
     

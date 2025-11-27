@@ -157,6 +157,10 @@ public class LoginRegister extends JPanel {
     return customerLogin;
  }
 
+ public JButton getCustomerRegister(){
+    return customerRegister;
+ }
+
  public JButton getTellerLogin(){
     return tellerLogin;
  }

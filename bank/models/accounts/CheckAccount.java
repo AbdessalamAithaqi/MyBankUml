@@ -13,7 +13,7 @@ public class CheckAccount extends Account {
     private Integer checkAccountId;
     private BigDecimal overdraftLimit;
     private BigDecimal monthlyFee;
-
+ 
     public CheckAccount(
             Integer accountId,
             String accountNumber,

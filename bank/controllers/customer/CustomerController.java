@@ -1,56 +1,60 @@
 package bank.controllers.customer;
 
+import bank.GUI.Customer.CustomerCardPanel;
+import bank.controllers.auth.LoginController;
 import bank.database.Database;
 import bank.models.org.Bank;
 import bank.models.users.Customer;
 
-public class CustomerController {
-    
-    //private final CustomerView view;
-    private final Customer customer;
-    private final Database db;
+import java.awt.*;
 
-    public CustomerController(Bank bank, CustomerView view, String username) {
+import javax.swing.*;
+
+public class CustomerController {
+    private final Database db;
+    private final JPanel container;
+    private final CardLayout cardLayout;
+    private final String cardName;
+    private final CustomerCardPanel view;
+    private final Runnable onLogout;
+    private final Bank bank;
+
+    public CustomerController(Bank bank, JPanel container, CardLayout cardLayout, String username, Runnable onLogout) {
+        this.bank = bank;
+        this.container = container;
+        this.cardLayout = cardLayout;
+        this.onLogout = onLogout;
+
         this.db = Database.getInstance();
         db.getConnection();
-        
-        this.customer = db.getCustomerByUsername(username);
-        
+
+        Customer customer = new Customer(username);
+
+        this.cardName = "CUSTOMER_HOME_" + username;
+        this.view = new CustomerCardPanel(customer);
+
+        container.add(view, cardName);
         attachEventHandlers();
     }
 
     private void attachEventHandlers() {
-        /**
-        view.addDepositListener(e -> handleDeposit());
-        view.addWithdrawListener(e -> handleWithdraw());
-        view.addGetAccountsListener(e -> handleGetAccounts());
-        view.addViewTransactionsListener(e -> handleViewTransactions());
-        view.addCreateTransactionListener(e -> handleCreateTransaction());
-        */   
+        view.getCustomerHome().getLogoutButton().addActionListener(e -> {
+            cardLayout.show(container, LoginController.CARD_LOGIN_REGISTER);
+            container.revalidate();
+            container.repaint();
+            if (onLogout != null) {
+                onLogout.run();
+            }
+        });
     }
 
-    private void showLogin() {
-        view.show();
+    public void showDashboard() {
+        cardLayout.show(container, cardName);
     }
 
-    private void handleDeposit() {
-        // Initialize DepositController object which shows deposit GUI
+    public void dispose() {
+        container.remove(view);
+        container.revalidate();
+        container.repaint();
     }
-
-    private void handleWithdraw() {
-        // Initialize WithdrawController object which shows withdraw GUI
-    }
-
-    private void handleGetAccounts() {
-        // ...
-    }
-
-    private void handleViewTransactions() {
-        // ...
-    }
-
-    private void handleCreateTransaction() {
-        // ...
-    }
-
 }

@@ -1,38 +1,57 @@
 package bank.controllers.employee;
 
+import bank.GUI.Teller.TellerPanel;
+import bank.controllers.auth.LoginController;
 import bank.database.Database;
 import bank.models.org.Bank;
 
-public class EmployeeController {
-    //private final EmployeeView view;
-    //private final Employee employee;
-    private final Database db;
-    //private final Customer customer; To be set when we perform an action on behalf of a Customer like when depositing, we take it from the Customer name input of the view.
+import java.awt.*;
 
-    public EmployeeController(Bank bank, EmployeeView view, String username) {
+import javax.swing.*;
+
+public class EmployeeController {
+    private final Database db;
+    private final JPanel container;
+    private final CardLayout cardLayout;
+    private final String cardName;
+    private final TellerPanel view;
+    private final Runnable onLogout;
+    private final Bank bank;
+
+    public EmployeeController(Bank bank, JPanel container, CardLayout cardLayout, String username, Runnable onLogout) {
+        this.bank = bank;
+        this.container = container;
+        this.cardLayout = cardLayout;
+        this.onLogout = onLogout;
+
         this.db = Database.getInstance();
         db.getConnection();
-        
-        //this.employee = db.(...);
-        
+
+        this.cardName = "EMPLOYEE_HOME_" + username;
+        this.view = new TellerPanel("Account Search (Teller)");
+        container.add(view, cardName);
+
         attachEventHandlers();
     }
 
     private void attachEventHandlers() {
-        /**
-        view.addDepositListener(e -> func());
-        view.addWithdrawListener(e -> func());
-        view.addGetAccountsListener(e -> func());
-        view.addViewTransactionsListener(e -> func());
-        view.addCreateTransactionListener(e -> func());
-        
-        view.addGetAllAccountsListener(e -> func());
-        view.addGetAccountByIdListener(e -> func());
-        view.addGetAccountByTypeListener(e -> func());
-        */
+        view.getLogoutButton().addActionListener(e -> {
+            cardLayout.show(container, LoginController.CARD_LOGIN_REGISTER);
+            container.revalidate();
+            container.repaint();
+            if (onLogout != null) {
+                onLogout.run();
+            }
+        });
     }
 
-    private void showLogin() {
-        view.show();
+    public void showDashboard() {
+        cardLayout.show(container, cardName);
+    }
+
+    public void dispose() {
+        container.remove(view);
+        container.revalidate();
+        container.repaint();
     }
 }

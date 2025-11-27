@@ -6,14 +6,18 @@ import javax.swing.*;
 
 import bank.GUI.Customer.CustomerCardPanel;
 import bank.GUI.Teller.TellerPanel;
+import bank.database.Database;
 import bank.models.users.Customer;
 
 public class CardPanel extends JPanel{
 
     private CardLayout cardLayout;
 
+    private final Database db;
+
     private LoginRegister loginRegister;
     private Login customerLogin;
+    private Login customerRegister;
     private Login tellerLogin;
     private Login adminLogin;
     private CustomerCardPanel customerCardPanel;
@@ -22,20 +26,33 @@ public class CardPanel extends JPanel{
     public CardPanel() {
         cardLayout = new CardLayout();
 
+        db = Database.getInstance();
+        db.getConnection();
+
         loginRegister = new LoginRegister();
         customerLogin = new Login("Customer");
+        customerRegister = new Login("Customer");
+        customerRegister.setHeading("Customer Registration");
+        customerRegister.getLoginButton().setText("Register");
+        customerRegister.enableConfirmPassword(true);
         tellerLogin = new Login("Teller");
         adminLogin = new Login("Admin");
 
         setLayout(cardLayout);   
 
         add(loginRegister, "HOME");
-        add(customerLogin, "CUSTOMER_LOGIN"); 
+        add(customerLogin, "CUSTOMER_LOGIN");
+        add(customerRegister, "CUSTOMER_REGISTER");
         add(tellerLogin, "TELLER_LOGIN");
         add(adminLogin, "ADMIN_LOGIN");
 
         loginRegister.getCustomerLogin().addActionListener(e -> {
             cardLayout.show(this, "CUSTOMER_LOGIN");
+        });
+
+        loginRegister.getCustomerRegister().addActionListener(e -> {
+            customerRegister.clearInputs();
+            cardLayout.show(this, "CUSTOMER_REGISTER");
         });
 
         loginRegister.getTellerLogin().addActionListener(e -> {
@@ -50,17 +67,20 @@ public class CardPanel extends JPanel{
             cardLayout.show(this, "HOME");
         });
 
+        customerRegister.getBackButton().addActionListener(e -> {
+            cardLayout.show(this, "HOME");
+        });
+
         tellerLogin.getBackButton().addActionListener(e -> {
             cardLayout.show(this, "HOME");
         });
 
         tellerLogin.getLoginButton().addActionListener(e -> {
-            // Temporary while database and controllers ar not done
-            //Auth will be added here.
-
             tellerPanel = new TellerPanel();
+            tellerPanel.getLogoutButton().addActionListener(ev -> {
+                cardLayout.show(this, "HOME");
+            });
             add(tellerPanel, "LOGGED_IN");
-
             cardLayout.show(this, "LOGGED_IN");
         });
 
@@ -68,32 +88,76 @@ public class CardPanel extends JPanel{
             cardLayout.show(this, "HOME");
         });
 
-        customerLogin.getLoginButton().addActionListener(e -> {
-        // Temporary while database and controllers are not done
+        customerLogin.getLoginButton().addActionListener(e -> handleCustomerLogin());
 
-            //this will contain auth and fetching the account 
-            // this is just for testing the GUI 
-            customerCardPanel = new CustomerCardPanel(new Customer("Ulysse"));
-            add(customerCardPanel, "LOGGED_IN");
+        customerRegister.getLoginButton().addActionListener(e -> handleCustomerRegistration());
+    }
 
-            
-            customerCardPanel.getCustomerHome().getLogoutButton().addActionListener(ev -> {
-                if (customerCardPanel != null) {
-                    remove(customerCardPanel);
-                }
-                // 2. Clear the reference so GC can clean everything
-                customerCardPanel = null;
-                // 3. Go back to HOME screen
-                cardLayout.show(this, "HOME");
-                
-                // 4. Revalidate layout to avoid empty areas / redraw issues
-                revalidate();
-            });
-            
-            cardLayout.show(this, "LOGGED_IN");
+    private void handleCustomerLogin() {
+        String username = customerLogin.getUsernameInput();
+        String password = customerLogin.getPasswordInput();
 
-        });
+        String role = db.authenticateUser(username, password);
+        if (role == null || !role.equalsIgnoreCase("CUSTOMER")) {
+            showError("Invalid customer credentials");
+            return;
+        }
 
+        customerLogin.clearInputs();
+        showCustomerDashboard(username);
+    }
 
+    private void handleCustomerRegistration() {
+        String username = customerRegister.getUsernameInput();
+        String password = customerRegister.getPasswordInput();
+        String confirm = customerRegister.getConfirmPasswordInput();
+
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            showError("Username and password are required");
+            return;
+        }
+
+        if (confirm == null || !confirm.equals(password)) {
+            showError("Passwords do not match");
+            return;
+        }
+
+        boolean created = db.createUser(username, password, "CUSTOMER");
+        if (!created) {
+            showError("Could not create user account");
+            return;
+        }
+
+        customerRegister.clearInputs();
+        showCustomerDashboard(username);
+    }
+
+    private void showCustomerDashboard(String username) {
+        if (customerCardPanel != null) {
+            remove(customerCardPanel);
+        }
+
+        customerCardPanel = new CustomerCardPanel(new Customer(username));
+        add(customerCardPanel, "LOGGED_IN");
+
+        customerCardPanel.getCustomerHome().getLogoutButton().addActionListener(ev -> logoutCustomer());
+
+        cardLayout.show(this, "LOGGED_IN");
+        revalidate();
+        repaint();
+    }
+
+    private void logoutCustomer() {
+        if (customerCardPanel != null) {
+            remove(customerCardPanel);
+            customerCardPanel = null;
+        }
+        cardLayout.show(this, "HOME");
+        revalidate();
+        repaint();
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
