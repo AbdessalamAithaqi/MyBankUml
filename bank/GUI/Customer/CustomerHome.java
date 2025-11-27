@@ -16,6 +16,10 @@ public class CustomerHome extends JPanel{
     private defaultButton showCard;
     private JPanel checkPanel;
     private JPanel savingPanel;
+    private JLabel checkIdLabel;
+    private JLabel checkBalanceLabel;
+    private JLabel savingIdLabel;
+    private JLabel savingBalanceLabel;
 
 
     public CustomerHome(Customer customer){
@@ -44,11 +48,11 @@ public class CustomerHome extends JPanel{
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
 
-        JLabel checkLabel = new JLabel("Check:", SwingConstants.LEFT);
+        JLabel checkLabel = new JLabel("Checking Account:", SwingConstants.LEFT);
         checkLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         checkLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
 
-        JLabel savingLabel = new JLabel("Saving:", SwingConstants.LEFT);
+        JLabel savingLabel = new JLabel("Savings Account:", SwingConstants.LEFT);
         savingLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         savingLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
 
@@ -79,7 +83,7 @@ public class CustomerHome extends JPanel{
     }
 
     //Temporary the id and balance will later be loaded from DB
-    private JPanel createAccountPanel(String id, int balance){
+    private JPanel createAccountPanel(String id, double balance){
         JPanel panel = new JPanel();
         panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         panel.setLayout(new BorderLayout());
@@ -91,13 +95,22 @@ public class CustomerHome extends JPanel{
         
         JLabel ID = new JLabel("ID: "+id);
         ID.setFont(new Font("SansSerif", Font.BOLD, 12));
-        JLabel Balance = new JLabel(balance+"$");
+        JLabel Balance = new JLabel(String.format("$%.2f", balance));
         Balance.setFont(new Font("SansSerif", Font.BOLD, 12));
         
         
 
         panel.add(ID, BorderLayout.WEST);
         panel.add(Balance, BorderLayout.EAST);
+
+        // track references for later updates
+        if (checkIdLabel == null) {
+            checkIdLabel = ID;
+            checkBalanceLabel = Balance;
+        } else if (savingIdLabel == null) {
+            savingIdLabel = ID;
+            savingBalanceLabel = Balance;
+        }
 
         return panel;
     }
@@ -126,5 +139,18 @@ public class CustomerHome extends JPanel{
     public defaultButton getShowCardButton(){
         return showCard;
     }
-}
 
+    public void setCheckAccount(String id, double balance) {
+        if (checkIdLabel != null && checkBalanceLabel != null) {
+            checkIdLabel.setText("ID: " + id);
+            checkBalanceLabel.setText(String.format("$%.2f", balance));
+        }
+    }
+
+    public void setSavingAccount(String id, double balance) {
+        if (savingIdLabel != null && savingBalanceLabel != null) {
+            savingIdLabel.setText("ID: " + id);
+            savingBalanceLabel.setText(String.format("$%.2f", balance));
+        }
+    }
+}

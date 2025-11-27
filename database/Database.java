@@ -198,7 +198,7 @@ public class Database {
             return false;
         }
     }
-
+    
     /**
      * Create a new user in the primary USER table (capitalized schema).
      * For this project, password_hash stores the provided password directly.
@@ -223,6 +223,233 @@ public class Database {
             System.err.println("Error creating user in USER table: " + e.getMessage());
             return false;
         }
+    }
+
+    // ========= Primary (capitalized) schema helpers =========
+
+    public static class PrimaryAccount {
+        public final int accountId;
+        public final String accountNumber;
+        public final String accountType;
+        public final double balance;
+
+        public PrimaryAccount(int accountId, String accountNumber, String accountType, double balance) {
+            this.accountId = accountId;
+            this.accountNumber = accountNumber;
+            this.accountType = accountType;
+            this.balance = balance;
+        }
+    }
+
+    public static class PrimaryTransaction {
+        public final int id;
+        public final Integer fromAccountId;
+        public final Integer toAccountId;
+        public final double amount;
+        public final String type;
+        public final String timestamp;
+        public final String description;
+
+        public PrimaryTransaction(int id, Integer fromAccountId, Integer toAccountId, double amount,
+                                  String type, String timestamp, String description) {
+            this.id = id;
+            this.fromAccountId = fromAccountId;
+            this.toAccountId = toAccountId;
+            this.amount = amount;
+            this.type = type;
+            this.timestamp = timestamp;
+            this.description = description;
+        }
+    }
+
+    public PrimaryAccount getPrimaryAccountById(int accountId) {
+        String sql = "SELECT account_id, account_number, account_type, balance FROM ACCOUNT WHERE account_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, accountId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new PrimaryAccount(
+                        rs.getInt("account_id"),
+                        rs.getString("account_number"),
+                        rs.getString("account_type"),
+                        rs.getDouble("balance")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching primary account by id: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Get CUSTOMER.customer_id for a USER.username.
+     */
+    public Integer getPrimaryCustomerIdByUsername(String username) {
+        String sql = "SELECT c.customer_id FROM CUSTOMER c JOIN USER u ON c.user_id = u.user_id WHERE u.username = ? LIMIT 1";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("customer_id");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching primary customer_id: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Fetch accounts from ACCOUNT for a given customer_id.
+     */
+    public List<PrimaryAccount> getPrimaryAccountsByCustomerId(int customerId) {
+        String sql = "SELECT account_id, account_number, account_type, balance FROM ACCOUNT WHERE customer_id = ?";
+        List<PrimaryAccount> accounts = new ArrayList<>();
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, customerId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    accounts.add(new PrimaryAccount(
+                        rs.getInt("account_id"),
+                        rs.getString("account_number"),
+                        rs.getString("account_type"),
+                        rs.getDouble("balance")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching primary accounts: " + e.getMessage());
+        }
+        return accounts;
+    }
+
+    public Double getPrimaryAccountBalance(int accountId) {
+        String sql = "SELECT balance FROM ACCOUNT WHERE account_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, accountId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("balance");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting primary account balance: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public boolean updatePrimaryAccountBalance(int accountId, double newBalance) {
+        String sql = "UPDATE ACCOUNT SET balance = ? WHERE account_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setDouble(1, newBalance);
+            pstmt.setInt(2, accountId);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating primary account balance: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Insert into TRANSACTION (capitalized) table.
+     * For deposits: to_account_id set, from_account_id null.
+     * For withdrawals: from_account_id set, to_account_id null.
+     */
+    public int createPrimaryTransaction(int accountId, String transactionType, double amount, String description) {
+        Integer fromId = null;
+        Integer toId = null;
+        String normalizedType = transactionType.toUpperCase();
+        if ("DEPOSIT".equals(normalizedType)) {
+            toId = accountId;
+        } else if ("WITHDRAWAL".equals(normalizedType)) {
+            fromId = accountId;
+        }
+
+        String sql = "INSERT INTO \"TRANSACTION\" (from_account_id, to_account_id, amount, transaction_type, status, description, transaction_date) " +
+                     "VALUES (?, ?, ?, ?, 'COMPLETED', ?, datetime('now'))";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            if (fromId == null) {
+                pstmt.setNull(1, Types.INTEGER);
+            } else {
+                pstmt.setInt(1, fromId);
+            }
+            if (toId == null) {
+                pstmt.setNull(2, Types.INTEGER);
+            } else {
+                pstmt.setInt(2, toId);
+            }
+            pstmt.setDouble(3, amount);
+            pstmt.setString(4, normalizedType);
+            pstmt.setString(5, description);
+            pstmt.executeUpdate();
+
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int transactionId = rs.getInt(1);
+                    logAudit("SYSTEM", "CREATE_TRANSACTION", "Primary transaction " + transactionId + " " + normalizedType + " $" + amount);
+                    return transactionId;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error creating primary transaction: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    public List<PrimaryTransaction> getPrimaryTransactionsForAccount(int accountId) {
+        String sql = "SELECT transaction_id, from_account_id, to_account_id, amount, transaction_type, transaction_date, description " +
+                     "FROM \"TRANSACTION\" " +
+                     "WHERE from_account_id = ? OR to_account_id = ? " +
+                     "ORDER BY transaction_date DESC, transaction_id DESC";
+        List<PrimaryTransaction> list = new ArrayList<>();
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, accountId);
+            pstmt.setInt(2, accountId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new PrimaryTransaction(
+                        rs.getInt("transaction_id"),
+                        rs.getObject("from_account_id") != null ? rs.getInt("from_account_id") : null,
+                        rs.getObject("to_account_id") != null ? rs.getInt("to_account_id") : null,
+                        rs.getDouble("amount"),
+                        rs.getString("transaction_type"),
+                        rs.getString("transaction_date"),
+                        rs.getString("description")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching primary transactions: " + e.getMessage());
+        }
+        return list;
+    }
+
+    /**
+     * Create a transfer record in TRANSACTION (capitalized) table.
+     * Both from_account_id and to_account_id are populated.
+     */
+    public int createPrimaryTransfer(int fromAccountId, int toAccountId, double amount, String description) {
+        String sql = "INSERT INTO \"TRANSACTION\" (from_account_id, to_account_id, amount, transaction_type, status, description, transaction_date) " +
+                     "VALUES (?, ?, ?, 'TRANSFER', 'COMPLETED', ?, datetime('now'))";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, fromAccountId);
+            pstmt.setInt(2, toAccountId);
+            pstmt.setDouble(3, amount);
+            pstmt.setString(4, description);
+            pstmt.executeUpdate();
+
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int transactionId = rs.getInt(1);
+                    logAudit("SYSTEM", "CREATE_TRANSFER", "Transfer " + transactionId + " $" + amount + " from " + fromAccountId + " to " + toAccountId);
+                    return transactionId;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error creating primary transfer: " + e.getMessage());
+        }
+        return -1;
     }
 
     /**

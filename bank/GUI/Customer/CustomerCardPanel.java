@@ -37,32 +37,6 @@ public class CustomerCardPanel extends JPanel{
         add(transactionPanel, "Transaction");
         add(transferPanel, "Transfer");
 
-        customerHome.getCheckPanel().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e){
-                checkTransactions = new CustomerTransactions("Check");
-                add(checkTransactions, "Check_Transactions");
-                cardLayout.show(CustomerCardPanel.this, "Check_Transactions");
-
-                checkTransactions.getBackButton().addActionListener(ev -> {
-                    cardLayout.show(CustomerCardPanel.this, "Home");
-                });
-            }
-        });
-
-        customerHome.getSavingPanel().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e){
-                savingTransactions = new CustomerTransactions("Saving");
-                add(savingTransactions, "Saving_Transactions");
-                cardLayout.show(CustomerCardPanel.this, "Saving_Transactions");
-
-                savingTransactions.getBackButton().addActionListener(ev -> {
-                    cardLayout.show(CustomerCardPanel.this, "Home");
-                });
-            }
-        });
-
         customerHome.getMakeTransferButton().addActionListener(e -> {
             cardLayout.show(this, "Transfer");
         });
@@ -97,7 +71,36 @@ public class CustomerCardPanel extends JPanel{
     public CustomerHome getCustomerHome(){
         return customerHome;
     }
-    
+
+    public CustomerMakeTransaction getTransactionPanel() {
+        return transactionPanel;
+    }
+
+    public CustomerMakeTransfer getTransferPanel() {
+        return transferPanel;
+    }
+
+    public void showCard(String name) {
+        cardLayout.show(this, name);
+    }
+
+    public CustomerTransactions ensureCheckTransactionsPanel() {
+        if (checkTransactions == null) {
+            checkTransactions = new CustomerTransactions("Check Transactions");
+            add(checkTransactions, "Check_Transactions");
+            checkTransactions.getBackButton().addActionListener(ev -> showCard("Home"));
+        }
+        return checkTransactions;
+    }
+
+    public CustomerTransactions ensureSavingTransactionsPanel() {
+        if (savingTransactions == null) {
+            savingTransactions = new CustomerTransactions("Saving Transactions");
+            add(savingTransactions, "Saving_Transactions");
+            savingTransactions.getBackButton().addActionListener(ev -> showCard("Home"));
+        }
+        return savingTransactions;
+    }
 
 
 }
