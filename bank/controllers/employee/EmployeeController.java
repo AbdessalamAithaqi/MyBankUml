@@ -2,6 +2,7 @@ package bank.controllers.employee;
 
 import bank.GUI.Teller.TellerPanel;
 import bank.controllers.auth.LoginController;
+import bank.controllers.common.CustomerActionHelper;
 import bank.database.Database;
 import bank.database.Database.PrimaryAccount;
 import bank.models.org.Bank;
@@ -20,6 +21,7 @@ public class EmployeeController {
     private final TellerPanel view;
     private final Runnable onLogout;
     private final Bank bank;
+    private final CustomerActionHelper customerActions = new CustomerActionHelper();
 
     public EmployeeController(Bank bank, JPanel container, CardLayout cardLayout, String username, Runnable onLogout) {
         this.bank = bank;
@@ -48,6 +50,9 @@ public class EmployeeController {
         });
 
         view.getSearchButton().addActionListener(e -> handleSearch());
+        view.getLoadCustomerButton().addActionListener(e -> loadCustomerAccounts());
+        view.getOpenTransactionButton().addActionListener(e -> customerActions.showTransactionDialog(view));
+        view.getOpenTransferButton().addActionListener(e -> customerActions.showTransferDialog(view));
     }
 
     public void showDashboard() {
@@ -116,5 +121,14 @@ public class EmployeeController {
 
     private void showError(String message) {
         JOptionPane.showMessageDialog(container, message, "Search Failed", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void loadCustomerAccounts() {
+        String username = view.getActionUsername();
+        if (username.isBlank()) {
+            showError("Enter a customer username to load.");
+            return;
+        }
+        customerActions.loadCustomer(username, view);
     }
 }

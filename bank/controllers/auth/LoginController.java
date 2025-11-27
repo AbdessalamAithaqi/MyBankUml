@@ -208,7 +208,15 @@ public class LoginController {
             firstName = username.substring(0, dot);
             lastName = username.substring(dot + 1);
         }
-        return db.createCustomerPrimary(username, firstName, lastName);
+        if (!db.createCustomerPrimary(username, firstName, lastName)) {
+            return false;
+        }
+        Integer customerId = db.getPrimaryCustomerIdByUsername(username);
+        if (customerId != null) {
+            db.createPrimaryAccount(customerId, "CHECK", 0.0, 1);
+            db.createPrimaryAccount(customerId, "SAVING", 0.0, 1);
+        }
+        return true;
     }
 
     private void showCustomerDashboard(String username) {
