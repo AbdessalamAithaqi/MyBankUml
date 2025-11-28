@@ -14,7 +14,7 @@ This project demonstrates the use of Object-Oriented Programming (OOP) principle
 Make sure you have the following installed:
 
 - JDK 17+
-- Maven (if Lombok is missing or not working correctly)
+- Maven
 
 1. Clone the repository:
 
