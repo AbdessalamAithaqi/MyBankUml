@@ -8,7 +8,6 @@ This project demonstrates the use of Object-Oriented Programming (OOP) principle
 
 - **Account Management**: Create and manage multiple types of bank accounts.
 - **Transaction Handling**: Simulate payments and generate receipts.
-- **UML-Driven Design**: Class structure directly follows the given UML diagram.
 
 ## 🚀 How to Run
 
