@@ -25,6 +25,11 @@ public class CustomerActionHelper {
     private final CustomerMakeTransaction transactionPanel = new CustomerMakeTransaction();
     private final CustomerMakeTransfer transferPanel = new CustomerMakeTransfer();
 
+    public CustomerActionHelper() {
+        transferPanel.getSelectCheckRadio().addActionListener(e -> updateTransferLabels());
+        transferPanel.getSelectSavingRadio().addActionListener(e -> updateTransferLabels());
+    }
+
     public boolean loadCustomer(String username, JComponent parent) {
         currentUsername = username;
         currentCustomerId = db.getPrimaryCustomerIdByUsername(username);

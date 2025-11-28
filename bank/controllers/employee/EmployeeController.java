@@ -109,45 +109,40 @@ public class EmployeeController {
     private void handleSearch() {
         List<PrimaryAccount> results = new ArrayList<>();
         try {
-            if (view.isSearchByCustomer()) {
-                String ln = view.getCustomerLastNameInput();
-                String birthplace = view.getBirthplaceFilter();
-                String address = view.getAddressFilter();
-                String createdAfter = view.getCreatedAfterFilter();
-                String dobAfter = view.getDobAfterFilter();
-                String branchStr = view.getBranchFilter();
-                Integer branchId = null;
-                if (!branchStr.isBlank()) {
-                    try {
-                        branchId = Integer.parseInt(branchStr);
-                    } catch (NumberFormatException ex) {
-                        showError("Branch ID must be numeric.");
-                        return;
-                    }
-                }
-                if (ln.isBlank() && birthplace.isBlank() && address.isBlank() && createdAfter.isBlank() && dobAfter.isBlank() && branchId == null) {
-                    showError("Enter at least one filter (name/birthplace/address/created-after/dob-after/branch).");
-                    return;
-                }
-                results = db.getPrimaryAccountsByCustomerFilters(ln, birthplace, address, createdAfter, dobAfter, branchId);
-            } else if (view.isSearchByAccountId()) {
-                String input = view.getAccountIdInput();
-                if (input.isBlank()) {
-                    showError("Enter an account ID.");
-                    return;
-                }
-                int accountId = Integer.parseInt(input);
-                PrimaryAccount account = db.getPrimaryAccountById(accountId);
-                if (account != null) {
-                    results.add(account);
-                }
-            } else if (view.isSearchByType()) {
-                String type = view.getSelectedType();
-                String normalized = type.toUpperCase().startsWith("CHECK") ? "CHECK" : "SAVING";
-                results = db.getPrimaryAccountsByType(normalized);
+            String ln = view.getCustomerLastNameInput();
+            String birthplace = view.getBirthplaceFilter();
+            String address = view.getAddressFilter();
+            String createdAfter = view.getCreatedAfterFilter();
+            String dobAfter = view.getDobAfterFilter();
+            String branchStr = view.getBranchFilter();
+            String accountIdInput = view.getAccountIdInput();
+            String typeSelection = view.getSelectedType();
+
+            Integer branchId = null;
+            if (!branchStr.isBlank()) {
+                branchId = Integer.parseInt(branchStr);
             }
+
+            Integer accountId = null;
+            if (!accountIdInput.isBlank()) {
+                accountId = Integer.parseInt(accountIdInput);
+            }
+
+            String normalizedType = normalizeAccountType(typeSelection);
+            boolean hasTypeFilter = normalizedType != null ||
+                                    (typeSelection != null && typeSelection.trim().toUpperCase().startsWith("BOTH"));
+
+            boolean hasAnyFilter = accountId != null || hasTypeFilter ||
+                                   !ln.isBlank() || !birthplace.isBlank() || !address.isBlank() ||
+                                   !createdAfter.isBlank() || !dobAfter.isBlank() || branchId != null;
+            if (!hasAnyFilter) {
+                showError("Enter at least one filter (account id/type/name/birthplace/address/created-after/dob-after/branch).");
+                return;
+            }
+
+            results = db.getPrimaryAccountsByFilters(ln, birthplace, address, createdAfter, dobAfter, branchId, accountId, normalizedType);
         } catch (NumberFormatException ex) {
-            showError("Please enter a valid numeric ID.");
+            showError("Please enter numeric values for account and branch IDs.");
             return;
         }
 
@@ -164,12 +159,13 @@ public class EmployeeController {
     private String formatAccount(PrimaryAccount acc) {
         String masked = maskAccount(acc.accountNumber);
         String owner = acc.ownerDisplay != null ? acc.ownerDisplay : "Unknown";
+        String branch = acc.branchId != null ? acc.branchId.toString() : "N/A";
         String birthplace = acc.birthplace != null ? acc.birthplace : "N/A";
         String addr = acc.address != null ? acc.address : "N/A";
         String dob = acc.dateOfBirth != null ? acc.dateOfBirth : "N/A";
         String created = acc.createdAt != null ? acc.createdAt : "N/A";
         return "<html><b>Account:</b> " + masked + " (id " + acc.accountId + ") | <b>Type:</b> " + acc.accountType +
-               " | <b>Balance:</b> $" + String.format("%.2f", acc.balance) +
+               " | <b>Balance:</b> $" + String.format("%.2f", acc.balance) + " | <b>Branch:</b> " + branch +
                "<br/><b>Owner:</b> " + owner +
                "<br/><b>Birthplace:</b> " + birthplace +
                "<br/><b>Address:</b> " + addr +
@@ -183,6 +179,23 @@ public class EmployeeController {
         String clean = accountNumber.replaceAll("\\s+", "");
         if (clean.length() <= 4) return clean;
         return "****" + clean.substring(clean.length() - 4);
+    }
+
+    private String normalizeAccountType(String typeSelection) {
+        if (typeSelection == null) {
+            return null;
+        }
+        String normalized = typeSelection.trim().toUpperCase();
+        if (normalized.startsWith("BOTH")) {
+            return null;
+        }
+        if (normalized.startsWith("CHECK")) {
+            return "CHECK";
+        }
+        if (normalized.startsWith("SAV")) {
+            return "SAVING";
+        }
+        return null;
     }
 
     private void showError(String message) {

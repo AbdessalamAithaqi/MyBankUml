@@ -10,11 +10,6 @@ import bank.GUI.Buttons.defaultButton;
 import java.util.List;
 
 public class TellerPanel extends JPanel{
-    // Search controls
-    private JRadioButton byCustomerRadio;
-    private JRadioButton byAccountIdRadio;
-    private JRadioButton byTypeRadio;
-
     private JTextField customerIdField;
     private JTextField accountIdField;
     private JComboBox<String> typeCombo;
@@ -90,28 +85,10 @@ public class TellerPanel extends JPanel{
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
-        // --- Radio buttons ---
-        byCustomerRadio = new JRadioButton("Search by Customer Last Name");
-        byAccountIdRadio = new JRadioButton("Search by Account ID");
-        byTypeRadio = new JRadioButton("Search by Account Type");
-
-        ButtonGroup group = new ButtonGroup();
-        group.add(byCustomerRadio);
-        group.add(byAccountIdRadio);
-        group.add(byTypeRadio);
-
-        byCustomerRadio.setSelected(true); // default
-
-        JPanel radioRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        radioRow.setOpaque(false);
-        radioRow.add(byCustomerRadio);
-        radioRow.add(byAccountIdRadio);
-        radioRow.add(byTypeRadio);
-
         // --- Inputs ---
         customerIdField = new JTextField(15);
         accountIdField = new JTextField(15);
-        typeCombo = new JComboBox<>(new String[] { "Checking", "Saving" });
+        typeCombo = new JComboBox<>(new String[] { "Both (Checking & Savings)", "Checking", "Saving" });
         birthplaceField = new JTextField(15);
         addressField = new JTextField(15);
         createdAfterField = new JTextField(10);
@@ -133,8 +110,6 @@ public class TellerPanel extends JPanel{
         buttonRow.setOpaque(false);
         buttonRow.add(searchButton);
 
-        panel.add(radioRow);
-        panel.add(Box.createVerticalStrut(8));
         panel.add(customerRow);
         panel.add(accountRow);
         panel.add(typeRow);
@@ -145,12 +120,6 @@ public class TellerPanel extends JPanel{
         panel.add(branchRow);
         panel.add(Box.createVerticalStrut(8));
         panel.add(buttonRow);
-
-        // GUI-only behavior: enable/disable appropriate fields
-        updateInputsForMode();
-        byCustomerRadio.addActionListener(e -> updateInputsForMode());
-        byAccountIdRadio.addActionListener(e -> updateInputsForMode());
-        byTypeRadio.addActionListener(e -> updateInputsForMode());
 
         return panel;
     }
@@ -166,21 +135,6 @@ public class TellerPanel extends JPanel{
         row.add(comp);
 
         return row;
-    }
-
-    // Just GUI: enable only the relevant input for the selected mode
-    private void updateInputsForMode() {
-        boolean byCustomer = byCustomerRadio.isSelected();
-        boolean byAccount  = byAccountIdRadio.isSelected();
-        boolean byType     = byTypeRadio.isSelected();
-
-        customerIdField.setEnabled(byCustomer);
-        birthplaceField.setEnabled(byCustomer);
-        addressField.setEnabled(byCustomer);
-        createdAfterField.setEnabled(byCustomer);
-        dobAfterField.setEnabled(byCustomer);
-        accountIdField.setEnabled(byAccount);
-        typeCombo.setEnabled(byType);
     }
 
     private JScrollPane createResultsArea() {
@@ -242,18 +196,6 @@ public class TellerPanel extends JPanel{
 
     public JButton getSearchButton() {
         return searchButton;
-    }
-
-    public boolean isSearchByCustomer() {
-        return byCustomerRadio.isSelected();
-    }
-
-    public boolean isSearchByAccountId() {
-        return byAccountIdRadio.isSelected();
-    }
-
-    public boolean isSearchByType() {
-        return byTypeRadio.isSelected();
     }
 
     public String getCustomerIdInput() {
