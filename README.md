@@ -33,10 +33,8 @@ mvn -q -DskipTests compile
 3. Run the program:
 
 ```bash
-# Linux/MAC
+# Linux/MAC/Windows
 java -cp "target/classes:libs/*" bank.Main
-# Windows
-java -cp "target/classes;libs/*" bank.Main
 ```
 
 To redownload the Lombok jar:
