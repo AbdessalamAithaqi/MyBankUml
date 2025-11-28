@@ -235,6 +235,7 @@ public class Database {
         public final String accountNumber;
         public final String accountType;
         public final double balance;
+        public final Integer branchId;
         public final String ownerDisplay;
         public final String birthplace;
         public final String address;
@@ -242,16 +243,17 @@ public class Database {
         public final String createdAt;
 
         public PrimaryAccount(int accountId, String accountNumber, String accountType, double balance) {
-            this(accountId, accountNumber, accountType, balance, null, null, null, null, null);
+            this(accountId, accountNumber, accountType, balance, null, null, null, null, null, null);
         }
 
         public PrimaryAccount(int accountId, String accountNumber, String accountType, double balance, String ownerDisplay,
-                              String birthplace, String address, String dateOfBirth, String createdAt) {
+                              Integer branchId, String birthplace, String address, String dateOfBirth, String createdAt) {
             this.accountId = accountId;
             this.accountNumber = accountNumber;
             this.accountType = accountType;
             this.balance = balance;
             this.ownerDisplay = ownerDisplay;
+            this.branchId = branchId;
             this.birthplace = birthplace;
             this.address = address;
             this.dateOfBirth = dateOfBirth;
@@ -281,7 +283,7 @@ public class Database {
     }
 
     public PrimaryAccount getPrimaryAccountById(int accountId) {
-        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, a.branch_id, u.username, c.first_name, c.last_name, " +
                      "c.birthplace, c.address, c.date_of_birth, u.created_at " +
                      "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
                      "JOIN USER u ON c.user_id = u.user_id " +
@@ -321,7 +323,7 @@ public class Database {
      * Fetch accounts from ACCOUNT for a given customer_id.
      */
     public List<PrimaryAccount> getPrimaryAccountsByCustomerId(int customerId) {
-        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, a.branch_id, u.username, c.first_name, c.last_name, " +
                      "c.birthplace, c.address, c.date_of_birth, u.created_at " +
                      "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
                      "JOIN USER u ON c.user_id = u.user_id " +
@@ -341,7 +343,7 @@ public class Database {
     }
 
     public List<PrimaryAccount> getPrimaryAccountsByType(String accountType) {
-        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, a.branch_id, u.username, c.first_name, c.last_name, " +
                      "c.birthplace, c.address, c.date_of_birth, u.created_at " +
                      "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
                      "JOIN USER u ON c.user_id = u.user_id " +
@@ -364,7 +366,7 @@ public class Database {
      * Fetch accounts by customer last name (partial, case-insensitive).
      */
     public List<PrimaryAccount> getPrimaryAccountsByCustomerLastName(String lastName) {
-        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+        String sql = "SELECT a.account_id, a.account_number, a.account_type, a.balance, a.branch_id, u.username, c.first_name, c.last_name, " +
                      "c.birthplace, c.address, c.date_of_birth, u.created_at " +
                      "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
                      "JOIN USER u ON c.user_id = u.user_id " +
@@ -388,13 +390,39 @@ public class Database {
      */
     public List<PrimaryAccount> getPrimaryAccountsByCustomerFilters(String lastName, String birthplace, String address,
                                                                     String createdAfter, String dobAfter, Integer branchId) {
+        return getPrimaryAccountsByFilters(lastName, birthplace, address, createdAfter, dobAfter, branchId, null, null);
+    }
+
+    /**
+     * Flexible account search with optional filters for customer info, account id, and account type.
+     */
+    public List<PrimaryAccount> getPrimaryAccountsByFilters(String lastName, String birthplace, String address,
+                                                            String createdAfter, String dobAfter, Integer branchId,
+                                                            Integer accountId, String accountType) {
         StringBuilder sb = new StringBuilder(
-            "SELECT a.account_id, a.account_number, a.account_type, a.balance, u.username, c.first_name, c.last_name, " +
+            "SELECT a.account_id, a.account_number, a.account_type, a.balance, a.branch_id, u.username, c.first_name, c.last_name, " +
             "c.birthplace, c.address, c.date_of_birth, u.created_at " +
             "FROM ACCOUNT a JOIN CUSTOMER c ON a.customer_id = c.customer_id " +
             "JOIN USER u ON c.user_id = u.user_id WHERE 1=1 "
         );
         List<Object> params = new ArrayList<>();
+        if (accountId != null) {
+            sb.append("AND a.account_id = ? ");
+            params.add(accountId);
+        }
+        String normalizedType = null;
+        if (accountType != null && !accountType.isBlank()) {
+            String upper = accountType.toUpperCase();
+            if (upper.startsWith("CHECK")) {
+                normalizedType = "CHECK";
+            } else if (upper.startsWith("SAV")) {
+                normalizedType = "SAVING";
+            }
+        }
+        if (normalizedType != null) {
+            sb.append("AND a.account_type = ? ");
+            params.add(normalizedType);
+        }
         if (lastName != null && !lastName.isBlank()) {
             sb.append("AND LOWER(c.last_name) LIKE LOWER(?) ");
             params.add("%" + lastName + "%");
@@ -720,6 +748,7 @@ public class Database {
             rs.getString("account_type"),
             rs.getDouble("balance"),
             display,
+            rs.getObject("branch_id") == null ? null : rs.getInt("branch_id"),
             rs.getString("birthplace"),
             rs.getString("address"),
             rs.getString("date_of_birth"),

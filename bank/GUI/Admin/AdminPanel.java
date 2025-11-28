@@ -69,7 +69,7 @@ public class AdminPanel extends JPanel {
 
         userUsername = new JTextField(15);
         userPassword = new JPasswordField(15);
-        userRole = new JComboBox<>(new String[] {"CUSTOMER", "TELLER", "ADMIN"});
+        userRole = new JComboBox<>(new String[] {"TELLER", "ADMIN"});
 
         addLabeled(panel, "Username:", userUsername);
         addLabeled(panel, "Password:", userPassword);
@@ -144,9 +144,6 @@ public class AdminPanel extends JPanel {
 
     // Expose teller search sub-panel API
     public JButton getSearchButton() { return searchPanel.getSearchButton(); }
-    public boolean isSearchByCustomer() { return searchPanel.isSearchByCustomer(); }
-    public boolean isSearchByAccountId() { return searchPanel.isSearchByAccountId(); }
-    public boolean isSearchByType() { return searchPanel.isSearchByType(); }
     public String getCustomerLastNameInput() { return searchPanel.getCustomerLastNameInput(); }
     public String getAccountIdInput() { return searchPanel.getAccountIdInput(); }
     public String getSelectedType() { return searchPanel.getSelectedType(); }

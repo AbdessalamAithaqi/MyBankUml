@@ -27,9 +27,9 @@ public class CustomerMakeTransfer extends JPanel{
         amount.setMaximumSize(new Dimension(250,60));
         amount.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        selectCheck = new JRadioButton("From Check");
+        selectCheck = new JRadioButton("From Checking");
         selectCheck.setFont(new Font("SansSerif", Font.BOLD, 20));
-        selectSaving = new JRadioButton("From Saving", true);
+        selectSaving = new JRadioButton("From Savings", true);
         selectSaving.setFont(new Font("SansSerif", Font.BOLD, 20));
         
         fromAccount =  new ButtonGroup();
